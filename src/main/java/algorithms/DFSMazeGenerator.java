@@ -15,14 +15,8 @@ public class DFSMazeGenerator extends MazeGenerator {
 
     @Override
     public void createRandomMaze() {
-        for (int i = 0; i < maze.getHeight(); i++) {
-            for (int j = 0; j < maze.getWidth(); j++) {
-                maze.setValue(i, j, 1); // Стіна
-            }
-        }
+        fillMaze();
 
-        
-        
         Stack<int[]> stack = new Stack<>();
         stack.push(new int[]{maze.getStartY() + 1, maze.getStartX()});
         maze.setValue(maze.getStartY(), maze.getStartX(), 0);
@@ -42,7 +36,7 @@ public class DFSMazeGenerator extends MazeGenerator {
                 int ny = y + dir[0];
                 int nx = x + dir[1];
 
-                if (inBounds(nx, ny) && maze.getValue(ny, nx) == 1) {
+                if (inBounds(ny, nx) && maze.getValue(ny, nx) == 1) {
                     neighbors.add(new int[]{ny, nx, dir[0], dir[1]});
                 }
             }

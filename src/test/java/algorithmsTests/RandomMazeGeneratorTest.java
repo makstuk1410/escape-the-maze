@@ -1,20 +1,22 @@
 package algorithmsTests;
 
+import algorithms.MazeGenerator;
 import entities.Maze;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class RandomMazeGeneratorTest {
+public abstract class RandomMazeGeneratorTest {
 
-    private Maze maze = new Maze(2, 2);
-    
-    @BeforeEach
-    public void setUp() {
-        maze.create();
+    public RandomMazeGeneratorTest(Class<? extends MazeGenerator> generatorClass) {
+        maze = new Maze(10, 10, generatorClass);
+        this.generatorClass = generatorClass;
     }
     
+    protected Class<? extends MazeGenerator> generatorClass;
+    protected Maze maze;
+    protected MazeGenerator mg;
+
     @Test
     public void testMazeIsFullyConnected() {
         boolean[][] visited = BFSForTestting.bfs(maze);
@@ -29,6 +31,8 @@ public class RandomMazeGeneratorTest {
                 }
             }
         }
+
+        maze.printMaze();
     }
 
     @Test
@@ -104,10 +108,25 @@ public class RandomMazeGeneratorTest {
 
     @Test
     public void testForPossibleZeroesInTheCorners() {
-        int [] x = {0, maze.getWidth()-1, maze.getWidth()-1, 0};
-        int [] y = {0, maze.getHeight()-1, 0, maze.getHeight()-1};
-        for(int i = 0; i < 4; i++){
+        int[] x = {0, maze.getWidth() - 1, maze.getWidth() - 1, 0};
+        int[] y = {0, maze.getHeight() - 1, 0, maze.getHeight() - 1};
+        for (int i = 0; i < 4; i++) {
             assertEquals(1, maze.getValue(y[i], x[i]));
+        }
+    }
+
+    @Test
+    public void testTime() {
+        System.out.println("Czas wykonania labiryntu dla algorytmu: " + generatorClass);
+        for (int i = 50; i < 500; i += 10) {
+            
+            long start = System.nanoTime();
+            
+            Maze newMaze = new Maze(i, i, generatorClass);
+
+            long end = System.nanoTime();
+            
+            System.out.println(i + "x" + i + " " + (end - start)/1000);
         }
     }
 }

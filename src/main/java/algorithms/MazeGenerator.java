@@ -11,15 +11,24 @@ public abstract class MazeGenerator {
         {0, 2}, // вниз
         {-2, 0} // вліво
     };
-    
-    
+
     MazeGenerator(Maze maze) {
         this.maze = maze;
     }
 
+    public void setMaze(Maze maze){
+        this.maze = maze;
+    }
+    
+    protected void fillMaze() {
+        for (int i = 0; i < maze.getHeight(); i++) {
+            for (int j = 0; j < maze.getWidth(); j++) {
+                maze.setValue(i, j, 1); // Стіна
+            }
+        }
+    }
 
-
-    protected boolean inBounds(int x, int y) {
+    protected boolean inBounds(int y, int x) {
         return x > 0 && x < maze.getWidth() - 1 && y > 0 && y < maze.getHeight() - 1;
     }
 

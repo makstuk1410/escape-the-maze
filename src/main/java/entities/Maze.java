@@ -1,6 +1,5 @@
 package entities;
 
-import algorithms.DFSMazeGenerator;
 import algorithms.MazeGenerator;
 import java.util.Random;
 
@@ -14,8 +13,11 @@ public class Maze {
     private int endX;
     private int endY;
 
-    
     //-----------------------------------------------------------GETTERS--------------------------------------------------
+    public int[][] getMaze() {
+        return maze;
+    }
+
     public int getValue(int y, int x) {
         return maze[y][x];
     }
@@ -44,12 +46,6 @@ public class Maze {
         return endY;
     }
     //----------------------------------------------------------GETTERS-------------------------------------------------
-    
-    
-    
-    
-    
-    
 
     //--------------------------------------------SETTERS-------------------------------------------------------
     public void setValue(int y, int x, int value) {
@@ -65,31 +61,43 @@ public class Maze {
     }
     //--------------------------------------------SETTERS-------------------------------------------------------
 
-    
-    
-    
-    
-
-    public Maze(int height, int width) {
+    private Maze(int height, int width) {
         this.height = 2 * height + 1;
         this.width = 2 * width + 1;
         this.maze = new int[this.height][this.width];
+
         Random r = new Random();
         startX = r.nextInt((this.width - 1) / 2) * 2 + 1;
         startY = 0;
-        maze[startY][startX]= 0;
-        maze[startY+1][startX]= 0;
+
+        maze[startY + 1][startX] = 0;
+
     }
 
-    public void create(){
-        MazeGenerator mg = new DFSMazeGenerator(this);
-        mg.createRandomMaze();
+    public Maze(int height, int width, Class<? extends MazeGenerator> generatorClass) {
+        Maze newMaze = new Maze(height, width);
+
+        MazeGenerator mg;
+        try {
+            mg = generatorClass
+                    .getDeclaredConstructor(Maze.class)
+                    .newInstance(newMaze);
+        } catch (Exception e) {
+            throw new RuntimeException("Nie udało sięstworzyć MazeGenerator: " + generatorClass.getSimpleName(), e);
+        }
+
+        mg.createRandomMaze(); 
+
+        this.maze = newMaze.getMaze();
+        this.height = 2 * height + 1;
+        this.width = 2 * width + 1;
+
+        startX = newMaze.getStartX();
+        startY = newMaze.getStartY();
+        maze[startY][startX] = 0;
         chooseEndPoint();
-        printMaze();
     }
-    
-    
-    
+
     private void chooseEndPoint() {
         int[] endXArray = new int[(width - 1) / 2];
         int endN = 0;
@@ -103,20 +111,17 @@ public class Maze {
         endY = height - 1;
         maze[endY][endX] = 0;
     }
-    
-    
-    
 
     public void printMaze() {
         for (int i = 0; i < height; i++) {
             System.out.print("\n");
             for (int j = 0; j < width; j++) {
                 if (maze[i][j] == 0) {
-                    System.out.print("◻️");
+                    System.out.print("  ️");
                 }
 
                 if (maze[i][j] == 1) {
-                    System.out.print("⬛️");
+                    System.out.print("█️█");
                 }
             }
         }
