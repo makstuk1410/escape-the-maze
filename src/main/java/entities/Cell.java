@@ -1,6 +1,6 @@
 package entities;
 
 
-public class Cell {
-    
+public interface Cell {
+    public void doEffects();
 }

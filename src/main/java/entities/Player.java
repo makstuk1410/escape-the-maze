@@ -1,13 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package entities;
 
-/**
- *
- * @author maks
- */
+
 public class Player {
     private int healthPoints;
     private int positionX;
@@ -20,7 +14,30 @@ public class Player {
     }
     
     public void getDamage(int healthPoints){
-        this.healthPoints = this.healthPoints - healthPoints;
+        this.healthPoints = this.getHealthPoints() - healthPoints;
+    }
+
+
+    public int getHealthPoints() {
+        return healthPoints;
+    }
+
+
+    public int getPositionX() {
+        return positionX;
+    }
+
+    public void setPositionX(int positionX) {
+        this.positionX = positionX;
+    }
+
+
+    public int getPositionY() {
+        return positionY;
+    }
+
+    public void setPositionY(int positionY) {
+        this.positionY = positionY;
     }
     
     
