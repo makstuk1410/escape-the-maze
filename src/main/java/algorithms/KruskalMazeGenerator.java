@@ -1,6 +1,6 @@
 package algorithms;
 
-import entities.Maze;
+import entities.MazeObjects.Maze;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,11 +23,10 @@ public class KruskalMazeGenerator extends MazeGenerator {
 
         for (int y = 1; y < maze.getHeight(); y += 2) {
             for (int x = 1; x < maze.getWidth(); x += 2) {
-                // Додаємо стіну праворуч від кімнати
+                
                 if (x + 2 < maze.getWidth()) {
                     walls.add(new int[]{y, x + 1});
                 }
-                // Додаємо стіну нижче кімнати
                 if (y + 2 < maze.getHeight()) {
                     walls.add(new int[]{y + 1, x});
                 }

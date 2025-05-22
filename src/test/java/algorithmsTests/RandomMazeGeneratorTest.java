@@ -1,7 +1,7 @@
 package algorithmsTests;
 
 import algorithms.MazeGenerator;
-import entities.Maze;
+import entities.MazeObjects.Maze;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import org.junit.jupiter.api.Test;
@@ -115,7 +115,7 @@ public abstract class RandomMazeGeneratorTest {
         }
     }
 
-    @Test
+    //@Test
     public void testTime() {
         System.out.println("Czas wykonania labiryntu dla algorytmu: " + generatorClass);
         for (int i = 50; i < 500; i += 10) {

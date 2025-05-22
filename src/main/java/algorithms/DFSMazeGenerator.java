@@ -1,6 +1,6 @@
 package algorithms;
 
-import entities.Maze;
+import entities.MazeObjects.Maze;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;

@@ -1,21 +1,45 @@
-package entities;
+package entities.MazeObjects;
 
+import entities.Cells.Wall;
+import entities.Cells.Freeze;
+import entities.Cells.End;
+import entities.Cells.EmptyWay;
+import entities.Cells.Cell;
+import entities.Cells.Gold;
+import entities.Cells.Spikes;
 import algorithms.MazeGenerator;
+import java.util.List;
 import java.util.Random;
 
 public class Maze {
 
     private int[][] maze;
+    private Cell[][] cellMaze;
     private final int height;
     private final int width;
     private final int startX;
     private final int startY;
     private int endX;
     private int endY;
+    private List<Class<? extends Cell>> obstacles = List.of(
+        Spikes.class,
+        Freeze.class,
+        Gold.class
+                );
+    
 
     //-----------------------------------------------------------GETTERS--------------------------------------------------
     public int[][] getMaze() {
         return maze;
+    }
+
+    public Cell[][] getCellMaze() {
+        return cellMaze;
+
+    }
+
+    public Cell getCellValue(int y, int x) {
+        return cellMaze[y][x];
     }
 
     public int getValue(int y, int x) {
@@ -86,7 +110,7 @@ public class Maze {
             throw new RuntimeException("Nie udało sięstworzyć MazeGenerator: " + generatorClass.getSimpleName(), e);
         }
 
-        mg.createRandomMaze(); 
+        mg.createRandomMaze();
 
         this.maze = newMaze.getMaze();
         this.height = 2 * height + 1;
@@ -96,6 +120,37 @@ public class Maze {
         startY = newMaze.getStartY();
         maze[startY][startX] = 0;
         chooseEndPoint();
+
+        cellMaze = new Cell[this.height][this.width];
+        for (int i = 0; i < this.height; i++) {
+            for (int j = 0; j < this.width; j++) {
+                cellMaze[i][j] = (maze[i][j] == 0) ? new EmptyWay() : new Wall();
+            }
+        }
+
+        cellMaze[endY][endX] = new End();
+
+        Random random = new Random();
+
+        for (int row = 1; row < maze.length-1; row++) {
+            for (int col = (row%2)+1; col < maze[0].length-1; col += 2) {
+                if (cellMaze[row][col] instanceof EmptyWay) {
+                    if (random.nextDouble() < 0.08) { // 10% шанс поставити перешкоду
+                        
+                        // Обираємо випадковий тип перешкоди
+                        Class<? extends Cell> clazz = obstacles.get(random.nextInt(obstacles.size()));
+
+                        try {
+                            Cell obstacle = clazz.getDeclaredConstructor().newInstance(); // створюємо екземпляр
+                            cellMaze[row][col] = obstacle;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     private void chooseEndPoint() {

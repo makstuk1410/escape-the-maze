@@ -1,6 +1,6 @@
 package algorithmsTests;
 
-import entities.Maze;
+import entities.MazeObjects.Maze;
 import java.util.LinkedList;
 import java.util.Queue;
 
