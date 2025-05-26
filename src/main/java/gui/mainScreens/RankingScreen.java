@@ -1,7 +1,5 @@
 package gui.mainScreens;
 
-import gui.mainScreens.ScreenManager;
-import gui.mainScreens.BaseScreen;
 import entities.MazeObjects.Level;
 import entities.MazeObjects.Levels;
 import gui.Instruments;
@@ -16,6 +14,8 @@ import managment.ScoreManager;
 
 public class RankingScreen extends BaseScreen {
 
+    private final String CARD_COLOR = "#00a5de";
+    
     @Override
     protected Node createContent() {
         VBox root = new VBox(60);
@@ -33,7 +33,7 @@ public class RankingScreen extends BaseScreen {
         HBox bottomButtons = new HBox(40);
         bottomButtons.setAlignment(Pos.CENTER);
 
-        Button menuBtn = Instruments.createButton("MENU", 300, 120, 2, "#C18C72", 40, 1.5);
+        Button menuBtn = Instruments.createButton("MENU", 300, 120, 2, MAIN_BUTTON_COLOR, 40, 1.5);
         menuBtn.setOnAction(e -> ScreenManager.getInstance().switchScreen("menu"));
 
         bottomButtons.getChildren().addAll(menuBtn);
@@ -49,7 +49,7 @@ public class RankingScreen extends BaseScreen {
         card.setPrefWidth(350);
         card.setPrefHeight(490);
         card.setStyle(
-                "-fx-background-color: #C18C72;"
+                "-fx-background-color: " + CARD_COLOR + ";"
                 + "-fx-border-color: black;"
                 + "-fx-border-width: 2;"
                 + "-fx-border-radius: 10;"

@@ -15,7 +15,8 @@ public class Main extends Application {
     }
 
 }
-//TODO: refaktoryzować tak by lepiej tworzyć przyciski
 
-
-//będzie klasa LEvel z 
+//TODO: 
+// wróg 
+// refaktoryzacja GameScreen
+// ewentualnie jeszcze inne przeszkody

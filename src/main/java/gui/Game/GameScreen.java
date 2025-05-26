@@ -5,8 +5,6 @@ import entities.MazeObjects.Player;
 import entities.MazeObjects.Maze;
 import entities.Cells.End;
 import entities.Cells.Cell;
-import gui.Game.EffectProcessor;
-import gui.Game.GameRenderer;
 import gui.Instruments;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Insets;
@@ -24,18 +22,19 @@ import java.util.Set;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.scene.CacheHint;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import managment.ScoreManager;
 
 public class GameScreen extends StackPane {
 
-    private static final int TILE_SIZE = 80;
-    private final Canvas canvas = new Canvas(11 * TILE_SIZE, 11 * TILE_SIZE);
-    private final GraphicsContext gc = canvas.getGraphicsContext2D();
+    public static final int TILE_SIZE = 80;
+    private static final Canvas canvas = new Canvas(11 * TILE_SIZE, 11 * TILE_SIZE);
+    private static final GraphicsContext gc = canvas.getGraphicsContext2D();
     private final Set<KeyCode> pressedKeys = new HashSet<>();
 
-    private static final Text score = Instruments.createOutlinedText("Score: " + ScoreManager.getCurrentScore(), 51, 0);
+    private static final Text score = Instruments.createOutlinedText("Score: " + ScoreManager.getCurrentScore(), 51, 2);
     private final Cell[][] maze;
     private final Player player;
     private Timer timer;
@@ -48,6 +47,9 @@ public class GameScreen extends StackPane {
     private final GameRenderer renderer = new GameRenderer();
     private final MovementController movementController = new MovementController();
     private EffectProcessor effectProcessor;
+
+    private static final Canvas fogCanvas = new Canvas(11 * TILE_SIZE, 11 * TILE_SIZE); // <- окремий шар
+    private static final GraphicsContext fogGC = fogCanvas.getGraphicsContext2D();
 
     public GameScreen(Player player, Maze mazeObj) {
         this.maze = mazeObj.getCellMaze();
@@ -116,10 +118,65 @@ public class GameScreen extends StackPane {
         jumpTimeline.play();
     }
 
+    private static boolean setFog = false;
+
+    private static void drawCanvasBorders(double scale) {
+        double thickness = 3 * scale;
+        double width = fogCanvas.getWidth();
+        double height = fogCanvas.getHeight();
+
+        fogGC.clearRect(0, 0, width, height); 
+
+        fogGC.setFill(Color.web("#666d6f")); 
+
+        fogGC.fillRect(0, 0, width, thickness);
+        fogGC.fillRect(0, height - thickness, width, thickness);
+        fogGC.fillRect(0, 0, thickness, height);
+        fogGC.fillRect(width - thickness, 0, thickness, height);
+    }
+
+    public static void startFogAnimation() {
+        if (setFog) {
+            return;
+        }
+        setFog = true;
+        final double maxScale = 80;
+        final double durationMs = 4000;
+
+        javafx.beans.property.DoubleProperty scaleProp = new javafx.beans.property.SimpleDoubleProperty(1.0);
+
+        final long[] lastUpdateTime = {0};
+        scaleProp.addListener((obs, oldVal, newVal) -> {
+            long now = System.currentTimeMillis();
+            if (now - lastUpdateTime[0] > 16) {
+                drawCanvasBorders(newVal.doubleValue());
+                lastUpdateTime[0] = now;
+            }
+        });
+        
+        Timeline fogTimeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(scaleProp, 1.0)),
+                new KeyFrame(Duration.millis(durationMs / 4), new KeyValue(scaleProp, maxScale)),
+                new KeyFrame(Duration.millis(durationMs / 4 * 3), new KeyValue(scaleProp, maxScale)),
+                new KeyFrame(Duration.millis(durationMs), new KeyValue(scaleProp, 1.0))
+        );
+
+        fogTimeline.setOnFinished(e -> {
+            drawCanvasBorders(0.0);
+            setFog = false;
+        });
+
+        fogTimeline.play();
+    }
+
     private void setupLayout() {
         setAlignment(Pos.CENTER);
         setStyle("-fx-background-color: black;");
         getChildren().add(canvas);
+        getChildren().add(fogCanvas);
+
+        fogCanvas.setCache(true);
+        fogCanvas.setCacheHint(CacheHint.SPEED);
 
         healthBar.setPrefSize(20, 200);
         healthBar.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
@@ -129,7 +186,7 @@ public class GameScreen extends StackPane {
 
         StackPane.setAlignment(score, Pos.TOP_LEFT);
 
-        StackPane.setMargin(healthBar, new Insets(50));
+        StackPane.setMargin(score, new Insets(50));
         getChildren().add(score);
     }
 

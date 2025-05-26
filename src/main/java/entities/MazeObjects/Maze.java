@@ -8,6 +8,7 @@ import entities.Cells.Cell;
 import entities.Cells.Gold;
 import entities.Cells.Spikes;
 import algorithms.MazeGenerator;
+import entities.Cells.Fog;
 import java.util.List;
 import java.util.Random;
 
@@ -24,7 +25,8 @@ public class Maze {
     private List<Class<? extends Cell>> obstacles = List.of(
         Spikes.class,
         Freeze.class,
-        Gold.class
+        Gold.class,
+        Fog.class
                 );
     
 

@@ -1,8 +1,12 @@
 package entities.Cells;
 
-import java.net.URL;
+import gui.Game.GameScreen;
 import javafx.animation.PauseTransition;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import managment.GameManager;
 
@@ -12,12 +16,33 @@ public class Freeze implements Cell {
     private static boolean active = false;
 
     public Freeze() {
-        URL url = getClass().getResource("/entities/freeze.png");
-        if (url == null) {
-            System.err.println("Resource not found: /entities/freeze.png");
-        } else {
-            this.img = new Image(url.toExternalForm());
-        }
+        int size = GameScreen.TILE_SIZE;
+        Canvas canvas = new Canvas(size, size);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        // 1️⃣ Фон — світло-блакитний
+        gc.setFill(Color.web("#e0f7fa")); // блакитний, холодний
+        gc.fillRect(0, 0, size, size);
+
+        // 2️⃣ Сніжинка/кристал — простий хрест
+        gc.setStroke(Color.web("#00acc1")); // темніший блакитний
+        gc.setLineWidth(2);
+
+        double center = size / 2.0;
+        double len = size * 0.25;
+
+        // Вертикаль
+        gc.strokeLine(center, center - len, center, center + len);
+        // Горизонталь
+        gc.strokeLine(center - len, center, center + len, center);
+        // Діагоналі
+        gc.strokeLine(center - len, center - len, center + len, center + len);
+        gc.strokeLine(center - len, center + len, center + len, center - len);
+
+        // 3️⃣ Snapshot → Image
+        WritableImage image = new WritableImage(size, size);
+        canvas.snapshot(null, image);
+        this.img = image;
     }
 
     @Override
@@ -36,7 +61,7 @@ public class Freeze implements Cell {
         activeFalse.setOnFinished(e -> {
             active = false;
         });
-        
+
         PauseTransition toNormal = new PauseTransition(Duration.seconds(3));
         toNormal.setOnFinished(e -> {
             GameManager.getPlayer().resetImage();
@@ -46,6 +71,7 @@ public class Freeze implements Cell {
         activeFalse.play();
         toNormal.play();
     }
+
     @Override
     public Image getImg() {
         return img;

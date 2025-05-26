@@ -1,6 +1,5 @@
 package gui.mainScreens;
 
-import gui.mainScreens.DifficultyScreen;
 import javafx.scene.Parent;
 import managment.GameManager;
 

@@ -8,30 +8,29 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-/**
- *
- * @author maks
- */
+
 public class HealthBar extends StackPane {
 
     private final Rectangle backgroundBar;
     private final Rectangle healthBar;
 
     private final int width = 200;
-    private final int height = 50;
+    private final int height = 38;
     private final Player player;
 
     public HealthBar() {
         player = GameManager.getPlayer();
 
         backgroundBar = new Rectangle(width, height, Color.DARKRED);
-        backgroundBar.setStroke(Color.BLACK);
+        backgroundBar.setStroke(Color.WHITE);
+        backgroundBar.setStrokeWidth(3);
 
-        healthBar = new Rectangle(width, height, Color.LIMEGREEN);
+        healthBar = new Rectangle(width-4, height-4, Color.LIMEGREEN);
+        
 
         this.getChildren().addAll(backgroundBar, healthBar);
 
-        update(); // відразу показує актуальне HP
+        update(); 
     }
 
     public void update() {

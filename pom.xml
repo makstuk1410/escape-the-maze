@@ -18,8 +18,6 @@
         <javafx.version>24.0.1</javafx.version>
         <exec.mainClass>managment.Main</exec.mainClass>
     </properties>
-    
-
 
     <dependencies>
         <!-- JavaFX -->
@@ -34,7 +32,7 @@
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- Тести -->
+        <!-- JUnit -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -50,22 +48,51 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Плагін для запуску JavaFX -->
+            <!-- JavaFX запуск -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>${exec.mainClass}</mainClass>
-                    <options>
-                        <option>--module-path</option>
-                        <option>/usr/lib/jvm/java-24-openjdk/lib</option>
-                        <option>--add-modules</option>
-                        <option>javafx.controls,javafx.fxml</option>
-                    </options>
                 </configuration>
+            </plugin>
+
+            <!-- Компіляція під Java 24 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <release>${maven.compiler.source}</release>
+                </configuration>
+            </plugin>
+
+            <!-- Створення fat jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${exec.mainClass}</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-    
 </project>

@@ -1,29 +1,36 @@
 package entities.Cells;
 
-import java.net.URL;
+import gui.Game.GameScreen;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.paint.Color;
 
 public class EmptyWay implements Cell {
 
     private Image img;
 
     public EmptyWay() {
+        int width = GameScreen.TILE_SIZE;
+        int height = GameScreen.TILE_SIZE;
+        WritableImage writableImage = new WritableImage(width, height);
+        PixelWriter pw = writableImage.getPixelWriter();
 
-        URL url = getClass().getResource("/entities/empty.png");
-        if (url == null) {
-            System.err.println("⛔ Resource not found: /entities/empty.png");
-        } else {
-            this.img = new Image(url.toExternalForm());
+        // Малюємо світло-сірий фон
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                pw.setColor(x, y, Color.LIGHTGRAY);
+            }
         }
+
+        this.img = writableImage;
     }
 
     @Override
-    public void doEffects() {
-    }
+    public void doEffects() {}
 
     @Override
     public Image getImg() {
         return img;
     }
-
 }

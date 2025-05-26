@@ -11,11 +11,15 @@ import javafx.scene.text.Text;
 
 
 public class Instruments {
+    private final static String TEXT_COLOR = "#00334f";
+    private final static String TEXT_BORDER_COLOR = "#EEEEEE";
+
+    
     public static Text createOutlinedText(String content, int fontSize, double borderSize) {
         Text text = new Text(content);
         text.setFont(Font.font("Arial", FontWeight.BOLD, fontSize));
-        text.setFill(Color.WHITE);
-        text.setStroke(Color.BLACK);
+        text.setFill(Color.web(TEXT_COLOR));
+        text.setStroke(Color.web(TEXT_BORDER_COLOR));
         text.setStrokeWidth(borderSize);
         return text;
     }
@@ -36,10 +40,10 @@ public class Instruments {
         btn.setGraphic(centeredGraphic); // вставляємо графіку
         btn.setStyle(
                 "-fx-background-color: "+color + ";"
-                + "-fx-background-radius: 10;"
+                + "-fx-background-radius: 30;"
                 + "-fx-border-color: black;"
                 + "-fx-border-width: "+border+";"
-                + "-fx-border-radius: 10;"
+                + "-fx-border-radius: 30;"
         );
         String defaultStyle = btn.getStyle();
 
