@@ -16,7 +16,7 @@ public class Spikes implements Cell {
     private static boolean active = false;
 
     public Spikes() {
-        int size = GameScreen.TILE_SIZE;
+        int size = GameManager.getTileSize();
         Canvas canvas = new Canvas(size, size);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
