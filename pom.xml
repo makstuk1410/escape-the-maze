@@ -13,9 +13,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>24</maven.compiler.source>
-        <maven.compiler.target>24</maven.compiler.target>
-        <javafx.version>24.0.1</javafx.version>
+        <maven.compiler.source>22</maven.compiler.source>
+        <maven.compiler.target>22</maven.compiler.target>
+        <javafx.version>22.0.1</javafx.version>
         <exec.mainClass>managment.Main</exec.mainClass>
     </properties>
 
@@ -58,7 +58,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Компіляція під Java 24 -->
+            <!-- Компіляція під Java 22 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
