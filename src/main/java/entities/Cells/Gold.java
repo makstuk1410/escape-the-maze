@@ -6,7 +6,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
-import managment.GameManager;
+import managment.GameConfig;
 import managment.ScoreManager;
 
 public class Gold implements Cell {
@@ -19,7 +19,7 @@ public class Gold implements Cell {
     }
 
     private Image createGoldTile() {
-        int size = GameManager.getTileSize();
+        int size = GameConfig.TILE_SIZE;
 
         Canvas canvas = new Canvas(size, size);
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -46,7 +46,7 @@ public class Gold implements Cell {
     }
 
     private Image createEmptyTile() {
-        int size = GameManager.getTileSize();
+        int size = GameConfig.TILE_SIZE;
         Canvas canvas = new Canvas(size, size);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 

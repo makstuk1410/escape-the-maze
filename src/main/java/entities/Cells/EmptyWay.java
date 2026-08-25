@@ -1,19 +1,18 @@
 package entities.Cells;
 
-import gui.Game.GameScreen;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.paint.Color;
-import managment.GameManager;
+import managment.GameConfig;
 
 public class EmptyWay implements Cell {
 
     private Image img;
 
     public EmptyWay() {
-        int width = GameManager.getTileSize();
-        int height = GameManager.getTileSize();
+        int width = GameConfig.TILE_SIZE;
+        int height = GameConfig.TILE_SIZE;
         WritableImage writableImage = new WritableImage(width, height);
         PixelWriter pw = writableImage.getPixelWriter();
 

@@ -6,13 +6,13 @@ import entities.MazeObjects.Player;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
+import managment.GameConfig;
 
 public class EffectProcessor {
     private final Cell[][] maze;
     private final Player player;
     private final Runnable onDeath;
     private final Timeline timeline;
-    private static final int TILE_SIZE = 80;
     private final HealthBar healthBar;
 
 
@@ -39,12 +39,12 @@ public class EffectProcessor {
 
         double x = player.getPositionX();
         double y = player.getPositionY();
-        double size = TILE_SIZE - 20;
+        double size = GameConfig.TILE_SIZE - 20;
 
-        int startRow = (int) (y / TILE_SIZE);
-        int endRow = (int) ((y + size - 1) / TILE_SIZE);
-        int startCol = (int) (x / TILE_SIZE);
-        int endCol = (int) ((x + size - 1) / TILE_SIZE);
+        int startRow = (int) (y / GameConfig.TILE_SIZE);
+        int endRow = (int) ((y + size - 1) / GameConfig.TILE_SIZE);
+        int startCol = (int) (x / GameConfig.TILE_SIZE);
+        int endCol = (int) ((x + size - 1) / GameConfig.TILE_SIZE);
 
         for (int row = startRow; row <= endRow; row++) {
             for (int col = startCol; col <= endCol; col++) {

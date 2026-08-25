@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 public class GameManager {
     
     public static int speed = 5;
-    private static final int TILE_SIZE = 80;
     private static  Cell[][] cellMaze = null;
 
     public static Timer getTimer() {
@@ -37,10 +36,6 @@ public class GameManager {
 
     public static Player getPlayer() {
         return player;
-    }
-
-    public static int getTileSize() {
-        return TILE_SIZE;
     }
 
     public GameManager(Stage primaryStage) {

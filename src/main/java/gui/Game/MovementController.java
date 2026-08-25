@@ -4,9 +4,9 @@ package gui.Game;
 import entities.Cells.Cell;
 import entities.MazeObjects.Player;
 import entities.Cells.Wall;
+import managment.GameConfig;
 
 public class MovementController {
-    private static final int TILE_SIZE = 80;
 
     public boolean movePlayer(Player player, int dx, int dy, int speed, Cell[][] maze) {
         if (dx == 0 && dy == 0) return false;
@@ -15,12 +15,12 @@ public class MovementController {
         while (steps > 0) {
             double newX = player.getPositionX() + Integer.signum(dx) * steps;
             double newY = player.getPositionY() + Integer.signum(dy) * steps;
-            double size = TILE_SIZE - 20;
+            double size = GameConfig.TILE_SIZE - 20;
 
-            int startRow = (int) (newY / TILE_SIZE);
-            int endRow = (int) ((newY + size - 1) / TILE_SIZE);
-            int startCol = (int) (newX / TILE_SIZE);
-            int endCol = (int) ((newX + size - 1) / TILE_SIZE);
+            int startRow = (int) (newY / GameConfig.TILE_SIZE);
+            int endRow = (int) ((newY + size - 1) / GameConfig.TILE_SIZE);
+            int startCol = (int) (newX / GameConfig.TILE_SIZE);
+            int endCol = (int) ((newX + size - 1) / GameConfig.TILE_SIZE);
 
             if (!hasCollision(startRow, endRow, startCol, endCol, maze)) {
                 player.move(Integer.signum(dx) * steps, Integer.signum(dy) * steps);

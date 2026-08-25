@@ -4,17 +4,16 @@ import entities.Cells.Cell;
 import entities.MazeObjects.Player;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import managment.GameConfig;
 
 public class GameRenderer {
 
-    private static final int TILE_SIZE = 80;
-
     public void drawMaze(GraphicsContext gc, Cell[][] maze, double offsetX, double offsetY, double canvasWidth, double canvasHeight) {
-        int startCol = (int) (offsetX / TILE_SIZE);
-        int startRow = (int) (offsetY / TILE_SIZE);
+        int startCol = (int) (offsetX / GameConfig.TILE_SIZE);
+        int startRow = (int) (offsetY / GameConfig.TILE_SIZE);
 
-        int maxCol = startCol + 11 + (offsetX % TILE_SIZE != 0 ? 1 : 0);
-        int maxRow = startRow + 11 + (offsetY % TILE_SIZE != 0 ? 1 : 0);
+        int maxCol = startCol + 11 + (offsetX % GameConfig.TILE_SIZE != 0 ? 1 : 0);
+        int maxRow = startRow + 11 + (offsetY % GameConfig.TILE_SIZE != 0 ? 1 : 0);
 
         for (int row = startRow; row < maxRow; row++) {
             for (int col = startCol; col < maxCol; col++) {
@@ -26,13 +25,13 @@ public class GameRenderer {
                     continue;
                 }
 
-                double x = col * TILE_SIZE - offsetX;
-                double y = row * TILE_SIZE - offsetY;
+                double x = col * GameConfig.TILE_SIZE - offsetX;
+                double y = row * GameConfig.TILE_SIZE - offsetY;
 
                 double visibleX = Math.max(0, -x);
                 double visibleY = Math.max(0, -y);
-                double drawWidth = Math.min(TILE_SIZE - visibleX, canvasWidth - x);
-                double drawHeight = Math.min(TILE_SIZE - visibleY, canvasHeight - y);
+                double drawWidth = Math.min(GameConfig.TILE_SIZE - visibleX, canvasWidth - x);
+                double drawHeight = Math.min(GameConfig.TILE_SIZE - visibleY, canvasHeight - y);
 
                 gc.drawImage(img, visibleX, visibleY, drawWidth, drawHeight,
                         x + visibleX, y + visibleY, drawWidth, drawHeight);
@@ -42,7 +41,7 @@ public class GameRenderer {
 
     public void drawPlayer(GraphicsContext gc, Player player, double offsetX, double offsetY) {
         double scale = player.getScale();
-        double baseSize = TILE_SIZE - 20;
+        double baseSize = GameConfig.TILE_SIZE - 20;
         double drawSize = baseSize * scale;
 
         double screenX = player.getPositionX() - offsetX + (baseSize - drawSize) / 2;

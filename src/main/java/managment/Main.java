@@ -15,8 +15,3 @@ public class Main extends Application {
     }
 
 }
-
-//TODO: 
-// wróg 
-// refaktoryzacja GameScreen
-// ewentualnie jeszcze inne przeszkody

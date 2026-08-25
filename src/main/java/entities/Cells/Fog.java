@@ -9,7 +9,7 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-import managment.GameManager;
+import managment.GameConfig;
 
 public class Fog implements Cell {
 
@@ -17,8 +17,8 @@ public class Fog implements Cell {
     private static boolean setFog = false;
 
     public Fog() {
-        int width = GameManager.getTileSize();
-        int height = GameManager.getTileSize();
+        int width = GameConfig.TILE_SIZE;
+        int height = GameConfig.TILE_SIZE;
         WritableImage writableImage = new WritableImage(width, height);
         PixelWriter pw = writableImage.getPixelWriter();
 

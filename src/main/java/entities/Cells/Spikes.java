@@ -1,6 +1,5 @@
 package entities.Cells;
 
-import gui.Game.GameScreen;
 import javafx.animation.PauseTransition;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -8,6 +7,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import managment.GameConfig;
 import managment.GameManager;
 
 public class Spikes implements Cell {
@@ -16,7 +16,7 @@ public class Spikes implements Cell {
     private static boolean active = false;
 
     public Spikes() {
-        int size = GameManager.getTileSize();
+        int size = GameConfig.TILE_SIZE;
         Canvas canvas = new Canvas(size, size);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 

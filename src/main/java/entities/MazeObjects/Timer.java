@@ -3,7 +3,6 @@ package entities.MazeObjects;
 import gui.Instruments;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.scene.control.Label;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 

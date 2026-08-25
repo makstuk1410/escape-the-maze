@@ -1,5 +1,7 @@
 package gui.Game;
 
+import managment.GameConfig;
+
 import entities.MazeObjects.Player;
 import entities.MazeObjects.Maze;
 import entities.Cells.End;
@@ -28,7 +30,7 @@ import managment.ScoreManager;
 
 public class GameScreen extends StackPane {
 
-    public static final Canvas canvas = new Canvas(11 * GameManager.getTileSize(), 11 * GameManager.getTileSize());
+    public static final Canvas canvas = new Canvas(11 * GameConfig.TILE_SIZE, 11 * GameConfig.TILE_SIZE);
     public static final GraphicsContext gc = canvas.getGraphicsContext2D();
     
     private final Set<KeyCode> pressedKeys = new HashSet<>();
@@ -46,7 +48,7 @@ public class GameScreen extends StackPane {
     private final MovementController movementController = new MovementController();
     private EffectProcessor effectProcessor;
 
-    public static final Canvas fogCanvas = new Canvas(11 * GameManager.getTileSize(), 11 * GameManager.getTileSize()); // <- окремий шар
+    public static final Canvas fogCanvas = new Canvas(11 * GameConfig.TILE_SIZE, 11 * GameConfig.TILE_SIZE);
     public static final GraphicsContext fogGC = fogCanvas.getGraphicsContext2D();
 
     public GameScreen(Player player, Maze mazeObj) {
@@ -65,8 +67,8 @@ public class GameScreen extends StackPane {
     }
 
     private void initializePlayerPosition(Maze mazeObj) {
-        GameManager.getPlayer().setPositionX(mazeObj.getStartX() * GameManager.getTileSize() + 10);
-        GameManager.getPlayer().setPositionY(mazeObj.getStartY() * GameManager.getTileSize() + 10);
+        GameManager.getPlayer().setPositionX(mazeObj.getStartX() * GameConfig.TILE_SIZE + 10);
+        GameManager.getPlayer().setPositionY(mazeObj.getStartY() * GameConfig.TILE_SIZE + 10);
     }
 
     private void setupCanvasEvents() {
@@ -218,8 +220,8 @@ public class GameScreen extends StackPane {
         double px = GameManager.getPlayer().getPositionX();
         double py = GameManager.getPlayer().getPositionY();
 
-        cameraOffsetX = clamp(px - centerX + GameManager.getTileSize() / 2, 0, GameManager.getCellMaze()[0].length * GameManager.getTileSize() - canvas.getWidth());
-        cameraOffsetY = clamp(py - centerY + GameManager.getTileSize() / 2, 0, GameManager.getCellMaze().length * GameManager.getTileSize() - canvas.getHeight());
+        cameraOffsetX = clamp(px - centerX + GameConfig.TILE_SIZE / 2, 0, GameManager.getCellMaze()[0].length * GameConfig.TILE_SIZE - canvas.getWidth());
+        cameraOffsetY = clamp(py - centerY + GameConfig.TILE_SIZE / 2, 0, GameManager.getCellMaze().length * GameConfig.TILE_SIZE - canvas.getHeight());
 
         renderer.drawMaze(gc, GameManager.getCellMaze(), cameraOffsetX, cameraOffsetY, canvas.getWidth(), canvas.getHeight());
         renderer.drawPlayer(gc, GameManager.getPlayer(), cameraOffsetX, cameraOffsetY);
