@@ -55,7 +55,7 @@ public class Freeze implements Cell {
 
         // 🔴 червоний
         GameManager.getPlayer().setImage("blue.png");
-        GameManager.speed = 2;
+        //GameConfig.SPEED = 2;
 
         PauseTransition activeFalse = new PauseTransition(Duration.seconds(1));
         activeFalse.setOnFinished(e -> {
@@ -65,7 +65,7 @@ public class Freeze implements Cell {
         PauseTransition toNormal = new PauseTransition(Duration.seconds(3));
         toNormal.setOnFinished(e -> {
             GameManager.getPlayer().resetImage();
-            GameManager.speed = 5;
+            //GameConfig.SPEED = 5;
         });
 
         activeFalse.play();

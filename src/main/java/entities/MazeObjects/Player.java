@@ -2,6 +2,7 @@ package entities.MazeObjects;
 
 import java.net.URL;
 import javafx.scene.image.Image;
+import managment.GameConfig;
 
 public class Player {
 
@@ -11,6 +12,15 @@ public class Player {
     private Image img;
     private boolean isJumping = false;
     private double scale = 1.0;
+    private int speed;
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
 
     public void setScale(double scale) {
         this.scale = scale;
@@ -32,6 +42,7 @@ public class Player {
         this.positionY = y;
         this.positionX = x;
         this.healthPoints = 100;
+        this.speed = GameConfig.SPEED;
         URL url = getClass().getResource("/entities/player.png");
         if (url == null) {
             System.err.println("⛔ Resource not found: /entities/player.png");

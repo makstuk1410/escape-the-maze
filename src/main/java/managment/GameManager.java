@@ -14,13 +14,9 @@ import javafx.stage.Stage;
 
 public class GameManager {
     
-    public static int speed = 5;
     private static  Cell[][] cellMaze = null;
 
-    public static Timer getTimer() {
-        return timer;
-    }
-    private static Timer timer = null;
+    public static Timer timer;   // needs changes
 
     
     private static Maze maze = null;
@@ -41,7 +37,7 @@ public class GameManager {
     public GameManager(Stage primaryStage) {
         ScreenManager.getInstance().setStage(primaryStage);
         ScreenManager.getInstance().switchScreen("menu");
-
+        timer = new Timer(300);
         primaryStage.setTitle("Escape the Maze");
 
         primaryStage.setWidth(Screen.getPrimary().getBounds().getWidth());
@@ -57,8 +53,7 @@ public class GameManager {
         maze = new Maze(level.getHeight(), level.getWidth(), level.getGeneratorClass());
         player = new Player(maze.getStartY(), maze.getStartX());
         cellMaze = maze.getCellMaze();
-        timer = new Timer(300);
         
-        return new GameScreen(player, maze);
+        return new GameScreen(player, maze, timer);
     }
 }
