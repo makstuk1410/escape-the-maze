@@ -71,24 +71,24 @@ public class Spikes implements Cell {
         active = true;
 
         // 🔴 Змінюємо спрайт + знімаємо HP
-        GameManager.getPlayer().setImage("red.png");
-        GameManager.getPlayer().getDamage(25);
+        //GameManager.getPlayer().setImage("red.png");
+        //GameManager.getPlayer().getDamage(25);
 
         // Через 0.5 сек — повертаємо звичайний вигляд
-        PauseTransition toNormal = new PauseTransition(Duration.seconds(0.5));
-        toNormal.setOnFinished(e -> GameManager.getPlayer().resetImage());
+        //PauseTransition toNormal = new PauseTransition(Duration.seconds(0.5));
+        //toNormal.setOnFinished(e -> GameManager.getPlayer().resetImage());
 
         // Через 1 сек — знову дозволяємо завдати шкоди
         PauseTransition done = new PauseTransition(Duration.seconds(1.0));
         done.setOnFinished(e -> active = false);
 
-        toNormal.play();
+        //toNormal.play();
         done.play();
     }
 
     public void stopEffects() {
         active = false;
-        GameManager.getPlayer().resetImage();
+        //GameManager.getPlayer().resetImage();
     }
 
     @Override
