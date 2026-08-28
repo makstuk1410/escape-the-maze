@@ -10,7 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import managment.ScoreManager;
+import management.ScoreManager;
 
 public class RankingScreen extends BaseScreen {
 

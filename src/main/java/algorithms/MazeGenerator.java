@@ -1,26 +1,23 @@
 package algorithms;
 
-import entities.MazeObjects.Maze;
+import entities.MazeObjects.MazeGrid;
+import java.util.Random;
 
 public abstract class MazeGenerator {
 
-    protected Maze maze;
+    protected MazeGrid maze;
     protected final int[][] directions = {
         {0, -2}, // вверх
         {2, 0}, // вправо
         {0, 2}, // вниз
         {-2, 0} // вліво
     };
+    protected final Random random = new Random();
     
-    MazeGenerator(Maze maze) {
+    MazeGenerator(MazeGrid maze) {
         this.maze = maze;
     }
 
-    /*
-    public void setMaze(Maze maze){
-        this.maze = maze;
-    }
-    */
     protected void fillMaze() {
         for (int i = 0; i < maze.getHeight(); i++) {
             for (int j = 0; j < maze.getWidth(); j++) {

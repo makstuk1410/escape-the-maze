@@ -1,6 +1,6 @@
-package gui.Game;
+package gui.game;
 
-import managment.GameConfig;
+import management.GameConfig;
 
 import entities.MazeObjects.Player;
 import entities.MazeObjects.Levels;
@@ -16,15 +16,9 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-import java.util.HashSet;
-import java.util.Set;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.scene.CacheHint;
 import javafx.scene.text.Text;
-import javafx.util.Duration;
-import managment.ScoreManager;
+import management.ScoreManager;
 import game.GameTimer;
 import game.effects.FogEffect;
 import entities.Tiles.EndTile;
@@ -33,8 +27,10 @@ import game.GameState;
 
 public class GameScreen extends StackPane {
 
-    public static final Canvas canvas = new Canvas(11 * GameConfig.TILE_SIZE, 11 * GameConfig.TILE_SIZE);
-    public static final GraphicsContext gc = canvas.getGraphicsContext2D();
+    private final Canvas canvas = new Canvas(
+            GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE,
+            GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE);
+    private final GraphicsContext gc = canvas.getGraphicsContext2D();
     private final InputController inputController = new InputController();
 
     private final Text scoreText;
@@ -55,8 +51,10 @@ public class GameScreen extends StackPane {
     private EffectProcessor effectProcessor;
     private GameLoop gameLoop;
 
-    public static final Canvas fogCanvas = new Canvas(11 * GameConfig.TILE_SIZE, 11 * GameConfig.TILE_SIZE);
-    public static final GraphicsContext fogGC = fogCanvas.getGraphicsContext2D();
+        private final Canvas fogCanvas = new Canvas(
+            GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE,
+            GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE);
+        private final GraphicsContext fogGC = fogCanvas.getGraphicsContext2D();
 
     public GameScreen(GameState gameState, Maze maze, GameTimer timer) {
         this.gameState = gameState;
@@ -68,13 +66,13 @@ public class GameScreen extends StackPane {
         this.fogEffect = new FogEffect(fogGC);
         this.scoreText = Instruments.createOutlinedText(
                 "Score: 0",
-                51,
-                2);
+            GameConfig.SCORE_FONT_SIZE,
+            GameConfig.SCORE_BORDER_SIZE);
 
         this.timerText = Instruments.createOutlinedText(
                 timer.getFormattedTime(),
-                40,
-                1);
+            GameConfig.TIMER_FONT_SIZE,
+            GameConfig.TIMER_BORDER_SIZE);
         this.camera = new Camera(
                 canvas.getWidth(),
                 canvas.getHeight());
@@ -108,8 +106,8 @@ public class GameScreen extends StackPane {
     }
 
     private void initializePlayerPosition() {
-        player.setPositionX(maze.getStartX() * GameConfig.TILE_SIZE + 10);
-        player.setPositionY(maze.getStartY() * GameConfig.TILE_SIZE + 10);
+        player.setPositionX(maze.getStartX() * GameConfig.TILE_SIZE + GameConfig.PLAYER_SPAWN_OFFSET);
+        player.setPositionY(maze.getStartY() * GameConfig.TILE_SIZE + GameConfig.PLAYER_SPAWN_OFFSET);
     }
 
     private void setupCanvasEvents() {
@@ -142,15 +140,15 @@ public class GameScreen extends StackPane {
         fogCanvas.setCache(true);
         fogCanvas.setCacheHint(CacheHint.SPEED);
 
-        healthBar.setPrefSize(20, 200);
+        healthBar.setPrefSize(GameConfig.HEALTH_BAR_WIDTH, GameConfig.HEALTH_BAR_HEIGHT);
         healthBar.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         StackPane.setAlignment(healthBar, Pos.TOP_RIGHT);
-        StackPane.setMargin(healthBar, new Insets(50));
+        StackPane.setMargin(healthBar, new Insets(GameConfig.HUD_MARGIN));
         getChildren().add(healthBar);
 
         StackPane.setAlignment(scoreText, Pos.TOP_LEFT);
 
-        StackPane.setMargin(scoreText, new Insets(50));
+        StackPane.setMargin(scoreText, new Insets(GameConfig.HUD_MARGIN));
         getChildren().add(scoreText);
     }
 
@@ -158,7 +156,7 @@ public class GameScreen extends StackPane {
         timer.setOnTimeEnd(() -> showPopup("Time's up!"));
 
         HBox topBar = new HBox(timerText);
-        topBar.setPadding(new Insets(10));
+        topBar.setPadding(new Insets(GameConfig.TOP_BAR_PADDING));
         topBar.setAlignment(Pos.TOP_CENTER);
 
         StackPane.setAlignment(topBar, Pos.TOP_LEFT);
@@ -200,7 +198,7 @@ public class GameScreen extends StackPane {
         Rectangle overlay = new Rectangle(
                 canvas.getWidth(),
                 canvas.getHeight(),
-                Color.rgb(0, 0, 0, 0.5));
+                Color.color(0, 0, 0, GameConfig.OVERLAY_OPACITY));
 
         ResultWindow popup = new ResultWindow(
                 text,
@@ -208,7 +206,7 @@ public class GameScreen extends StackPane {
                 () -> ScreenManager.getInstance().switchScreen("menu"),
                 () -> ScreenManager.getInstance().switchScreen("game"));
 
-        popup.setMaxSize(300, 200);
+        popup.setMaxSize(GameConfig.POPUP_WIDTH, GameConfig.POPUP_HEIGHT);
         StackPane.setAlignment(popup, Pos.CENTER);
         getChildren().addAll(overlay, popup);
         canvas.setFocusTraversable(false);

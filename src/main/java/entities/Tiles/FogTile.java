@@ -1,12 +1,13 @@
 package entities.Tiles;
 
 import game.GameState;
+import management.GameConfig;
 
 public class FogTile implements Tile {
 
 	@Override
 	public void onEnter(GameState gameState) {
-		gameState.activateFog(4000);
+		gameState.activateFog((long) GameConfig.FOG_DURATION);
 	}
 
 	@Override

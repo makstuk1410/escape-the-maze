@@ -1,4 +1,4 @@
-package managment;
+package management;
 
 import entities.MazeObjects.Levels;
 import java.io.BufferedReader;

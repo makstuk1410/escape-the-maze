@@ -1,13 +1,12 @@
 package algorithms;
 
-import entities.MazeObjects.Maze;
+import entities.MazeObjects.MazeGrid;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class PrimsMazeGenerator extends MazeGenerator {
 
-    public PrimsMazeGenerator(Maze maze) {
+    public PrimsMazeGenerator(MazeGrid maze) {
         super(maze);
     }
 
@@ -20,10 +19,8 @@ public class PrimsMazeGenerator extends MazeGenerator {
         maze.setValue(y, x, 0);
         addAllWallsToArray(notVisitedWalls, y, x);
 
-        Random r = new Random();
-
         while (!notVisitedWalls.isEmpty()) {
-            int[] wall = notVisitedWalls.remove(r.nextInt(notVisitedWalls.size()));
+            int[] wall = notVisitedWalls.remove(random.nextInt(notVisitedWalls.size()));
 
             int[] empty = null;
             int n = 0;

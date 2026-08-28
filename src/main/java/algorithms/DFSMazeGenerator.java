@@ -1,14 +1,13 @@
 package algorithms;
 
-import entities.MazeObjects.Maze;
+import entities.MazeObjects.MazeGrid;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Stack;
 
 public class DFSMazeGenerator extends MazeGenerator {
 
-    public DFSMazeGenerator(Maze maze) {
+    public DFSMazeGenerator(MazeGrid maze) {
         super(maze);
     }
 
@@ -42,7 +41,7 @@ public class DFSMazeGenerator extends MazeGenerator {
             }
 
             if (!neighbors.isEmpty()) {
-                int[] chosen = neighbors.get(new Random().nextInt(neighbors.size()));
+                int[] chosen = neighbors.get(random.nextInt(neighbors.size()));
                 int ny = chosen[0];
                 int nx = chosen[1];
                 int dy = chosen[2];

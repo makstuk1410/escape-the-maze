@@ -1,8 +1,7 @@
-package gui.Game;
+package gui.game;
 
 import entities.MazeObjects.Player;
 import entities.Tiles.Tile;
-import entities.Tiles.Wall;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -10,7 +9,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
-import managment.GameConfig;
+import management.GameConfig;
 import game.GameState;
 
 import java.util.Set;
@@ -28,48 +27,46 @@ public class PlayerController {
             Tile[][] maze,
             GameState gameState
     ) {
-        int dx = 0;
-        int dy = 0;
+        int directionX = 0;
+        int directionY = 0;
 
         if (pressedKeys.contains(KeyCode.W)) {
-            dy--;
+            directionY--;
         }
 
         if (pressedKeys.contains(KeyCode.S)) {
-            dy++;
+            directionY++;
         }
 
         if (pressedKeys.contains(KeyCode.A)) {
-            dx--;
+            directionX--;
         }
 
         if (pressedKeys.contains(KeyCode.D)) {
-            dx++;
+            directionX++;
         }
 
-        movePlayer(dx, 0, maze, gameState);
-        movePlayer(0, dy, maze, gameState);
+        double length = Math.hypot(directionX, directionY);
+        if (length > 0) {
+            movePlayer(directionX / length, directionY / length, maze, gameState);
+        }
     }
 
     private boolean movePlayer(
-            int dx,
-            int dy,
+            double directionX,
+            double directionY,
             Tile[][] maze,
             GameState gameState
     ) {
-        if (dx == 0 && dy == 0) {
-            return false;
-        }
+        double speed = gameState.getPlayerSpeed();
 
-        int speed = gameState.getPlayerSpeed();
-
-        for (int step = speed; step > 0; step--) {
+        for (double step = speed; step > 0; step--) {
 
             double newX = player.getPositionX()
-                    + Integer.signum(dx) * step;
+                    + directionX * step;
 
             double newY = player.getPositionY()
-                    + Integer.signum(dy) * step;
+                    + directionY * step;
 
             double size = GameConfig.TILE_SIZE - 20;
 
@@ -91,8 +88,8 @@ public class PlayerController {
                     maze
             )) {
                 player.move(
-                        Integer.signum(dx) * step,
-                        Integer.signum(dy) * step
+                    directionX * step,
+                    directionY * step
                 );
 
                 return true;
@@ -116,7 +113,7 @@ public class PlayerController {
                     return true;
                 }
 
-                if (maze[row][col] instanceof Wall) {
+                if (!maze[row][col].isWalkable()) {
                     return true;
                 }
             }

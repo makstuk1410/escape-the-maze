@@ -1,21 +1,18 @@
 package algorithms;
 
-import entities.MazeObjects.Maze;
+import entities.MazeObjects.MazeGrid;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class BinaryTreeMazeGenerator extends MazeGenerator {
 
-    public BinaryTreeMazeGenerator(Maze maze) {
+    public BinaryTreeMazeGenerator(MazeGrid maze) {
         super(maze);
     }
 
     @Override
     public void createRandomMaze() {
         fillMaze();
-        Random r = new Random();
-
         for (int y = 1; y < maze.getHeight() - 1; y += 2) {
             for (int x = 1; x < maze.getWidth() - 1; x += 2) {
                 maze.setValue(y, x, 0);
@@ -36,7 +33,7 @@ public class BinaryTreeMazeGenerator extends MazeGenerator {
                 }
 
                 if (!possibleDirections.isEmpty()) {
-                    int[] dir = possibleDirections.get(r.nextInt(possibleDirections.size()));
+                    int[] dir = possibleDirections.get(random.nextInt(possibleDirections.size()));
 
                     int wallY = y + dir[0];
                     int wallX = x + dir[1];

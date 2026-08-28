@@ -1,6 +1,7 @@
 package entities.Tiles;
 
 import game.GameState;
+import management.GameConfig;
 
 public class EndTile implements Tile {
 	private Runnable onReached;
@@ -15,7 +16,7 @@ public class EndTile implements Tile {
 			return;
 		}
 
-		gameState.addScore(100);
+		gameState.addScore(GameConfig.END_SCORE);
         gameState.win();
 		if (onReached != null) {
 			onReached.run();
