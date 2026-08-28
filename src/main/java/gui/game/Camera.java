@@ -36,17 +36,8 @@ public class Camera {
         double worldHeight =
                 mazeHeight * GameConfig.TILE_SIZE;
 
-        offsetX = clamp(
-                targetX,
-                0,
-                worldWidth - width
-        );
-
-        offsetY = clamp(
-                targetY,
-                0,
-                worldHeight - height
-        );
+        offsetX = Math.floor(clamp(targetX, 0, worldWidth - width));
+        offsetY = Math.floor(clamp(targetY, 0, worldHeight - height));
     }
 
     public double getOffsetX() {

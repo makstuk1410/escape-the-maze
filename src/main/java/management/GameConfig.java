@@ -4,13 +4,14 @@ public class GameConfig {
     public static final int TILE_SIZE = 80;
     public static final int VIEW_SIZE = 11;
     public static final double JUMP_MAX_SCALE = 1.5;
-    public static final double JUMP_DURATION_MS = 650;
-    public static final double FOG_DURATION = 4000;
+    public static final long JUMP_DURATION_MS = 650;
+    public static final long FOG_DURATION_MS = 4000;
     public static final long FREEZE_DURATION_MS = 3000;
     public static final int SPIKES_DAMAGE = 20;
     public static final int GOLD_SCORE = 10;
     public static final int END_SCORE = 100;
     public static final double OBSTACLE_CHANCE = 0.08;
+    public static final int PLAYER_SIZE = TILE_SIZE - 20;
     public static final int PLAYER_SPAWN_OFFSET = 10;
     public static final int HEALTH_BAR_WIDTH = 20;
     public static final int HEALTH_BAR_HEIGHT = 200;

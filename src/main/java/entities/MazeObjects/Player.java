@@ -9,22 +9,6 @@ public class Player {
     private double scale = 1.0;
     private int speed;
 
-    public enum PlayerEffect {
-        NONE,
-        DAMAGED,
-        FROZEN
-    }
-
-    private PlayerEffect effect = PlayerEffect.NONE;
-
-    public PlayerEffect getEffect() {
-        return effect;
-    }
-
-    public void setEffect(PlayerEffect effect) {
-        this.effect = effect;
-    }
-
     public int getSpeed() {
         return speed;
     }

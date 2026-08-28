@@ -20,7 +20,7 @@ public abstract class RandomMazeGeneratorTest {
 
     @Test
     public void testMazeIsFullyConnected() {
-        boolean[][] visited = BFSForTestting.bfs(maze);
+        boolean[][] visited = MazeTestUtils.bfs(maze);
 
         for (int i = 0; i < maze.getHeight(); i++) {
             for (int j = 0; j < maze.getWidth(); j++) {
@@ -33,7 +33,6 @@ public abstract class RandomMazeGeneratorTest {
             }
         }
 
-        maze.printMaze();
     }
 
     @Test
@@ -74,7 +73,7 @@ public abstract class RandomMazeGeneratorTest {
 
     @Test
     public void testIfWidthAndHeightAreOddNumbers() {
-        int a = maze.getHeight() % 2; //must be an odd number
+        int a = maze.getHeight() % 2;
         assertEquals(1, a);
 
         int b = maze.getWidth() % 2;
@@ -116,18 +115,4 @@ public abstract class RandomMazeGeneratorTest {
         }
     }
 
-    //@Test
-    public void testTime() {
-        System.out.println("Czas wykonania labiryntu dla algorytmu: " + generatorType);
-        for (int i = 50; i < 500; i += 10) {
-            
-            long start = System.nanoTime();
-            
-            Maze newMaze = new Maze(i, i, generatorType);
-
-            long end = System.nanoTime();
-            
-            System.out.println(i + "x" + i + " " + (end - start)/1000);
-        }
-    }
 }

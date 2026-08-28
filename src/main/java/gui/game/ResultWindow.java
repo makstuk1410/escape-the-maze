@@ -1,7 +1,7 @@
 package gui.game;
 
 
-import gui.Instruments;
+import gui.UIFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -52,13 +52,13 @@ public class ResultWindow extends VBox {
                 )
         ));
 
-        Text title = Instruments.createOutlinedText(
+        Text title = UIFactory.createOutlinedText(
                 message,
                 100,
                 1
         );
 
-        Text scoreLabel = Instruments.createOutlinedText(
+        Text scoreLabel = UIFactory.createOutlinedText(
                 "Your score: " + score,
                 50,
                 1
@@ -67,7 +67,7 @@ public class ResultWindow extends VBox {
         HBox buttons = new HBox(20);
         buttons.setAlignment(Pos.CENTER);
 
-        Button menuButton = Instruments.createButton(
+        Button menuButton = UIFactory.createButton(
                 "MENU",
                 100,
                 70,
@@ -77,7 +77,7 @@ public class ResultWindow extends VBox {
                 1
         );
 
-        Button tryAgainButton = Instruments.createButton(
+        Button tryAgainButton = UIFactory.createButton(
                 "TRY AGAIN",
                 100,
                 70,

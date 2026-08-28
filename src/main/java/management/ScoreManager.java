@@ -13,7 +13,10 @@ import java.util.Map;
 public class ScoreManager {
 
     
-    private static final String FILE_NAME = "score.txt";
+        private static final Path SCORE_FILE = Path.of(
+            System.getProperty("user.home"),
+            ".escape-the-maze",
+            "score.txt");
     private static final Map<String, Integer> scores = new LinkedHashMap<>();
 
     static {
@@ -25,7 +28,7 @@ public class ScoreManager {
             scores.put(Levels.getLevel(i).getName(), 0);
         }
 
-        Path file = Path.of(FILE_NAME);
+        Path file = SCORE_FILE;
         if (!Files.exists(file)) {
             saveScores();
             return;
@@ -65,8 +68,15 @@ public class ScoreManager {
     }
 
     private static void saveScores() {
+        try {
+            Files.createDirectories(SCORE_FILE.getParent());
+        } catch (IOException e) {
+            System.err.println("Could not create score directory: " + e.getMessage());
+            return;
+        }
+
         try (BufferedWriter writer = Files.newBufferedWriter(
-                Path.of(FILE_NAME),
+                SCORE_FILE,
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING)) {
             for (Map.Entry<String, Integer> entry : scores.entrySet()) {

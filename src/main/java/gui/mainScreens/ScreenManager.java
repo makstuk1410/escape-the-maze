@@ -37,7 +37,7 @@ public class ScreenManager {
         stage.setScene(scene);
         javafx.application.Platform.runLater(() -> {
             stage.sizeToScene();
-            stage.centerOnScreen(); // якщо треба
+            stage.centerOnScreen();
         });
     }
 }

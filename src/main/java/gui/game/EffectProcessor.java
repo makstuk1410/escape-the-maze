@@ -9,14 +9,14 @@ import management.GameConfig;
 import game.GameState; 
 
 public class EffectProcessor {
-    private final Tile[][] maze;
+    private final Tile[][] tiles;
     private final Runnable onDeath;
     private final Timeline timeline;
     private final GameState gameState;
 
 
-    public EffectProcessor(Tile[][] maze, GameState gameState, Runnable onDeathCallback) {
-        this.maze = maze;
+    public EffectProcessor(Tile[][] tiles, GameState gameState, Runnable onDeathCallback) {
+        this.tiles = tiles;
         this.gameState = gameState;
         this.onDeath = onDeathCallback;
 
@@ -37,7 +37,7 @@ public class EffectProcessor {
 
         double x = gameState.getPlayer().getPositionX();
         double y = gameState.getPlayer().getPositionY();
-        double size = GameConfig.TILE_SIZE - 20;
+        double size = GameConfig.PLAYER_SIZE;
 
         int startRow = (int) (y / GameConfig.TILE_SIZE);
         int endRow = (int) ((y + size - 1) / GameConfig.TILE_SIZE);
@@ -46,7 +46,7 @@ public class EffectProcessor {
 
         for (int row = startRow; row <= endRow; row++) {
             for (int col = startCol; col <= endCol; col++) {
-                if (isInBounds(row, col)) maze[row][col].onEnter(gameState);
+                if (isInBounds(row, col)) tiles[row][col].onEnter(gameState);
             }
         }
 
@@ -56,6 +56,6 @@ public class EffectProcessor {
     }
 
     private boolean isInBounds(int row, int col) {
-        return row >= 0 && col >= 0 && row < maze.length && col < maze[0].length;
+        return row >= 0 && col >= 0 && row < tiles.length && col < tiles[0].length;
     }
 }

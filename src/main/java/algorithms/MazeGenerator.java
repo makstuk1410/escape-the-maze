@@ -7,10 +7,10 @@ public abstract class MazeGenerator {
 
     protected MazeGrid maze;
     protected final int[][] directions = {
-        {0, -2}, // вверх
-        {2, 0}, // вправо
-        {0, 2}, // вниз
-        {-2, 0} // вліво
+        {0, -2},
+        {2, 0},
+        {0, 2},
+        {-2, 0}
     };
     protected final Random random = new Random();
     
@@ -21,7 +21,7 @@ public abstract class MazeGenerator {
     protected void fillMaze() {
         for (int i = 0; i < maze.getHeight(); i++) {
             for (int j = 0; j < maze.getWidth(); j++) {
-                maze.setValue(i, j, 1); // Стіна
+                maze.setValue(i, j, 1);
             }
         }
     }

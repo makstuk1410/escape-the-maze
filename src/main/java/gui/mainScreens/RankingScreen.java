@@ -2,7 +2,7 @@ package gui.mainScreens;
 
 import entities.MazeObjects.Level;
 import entities.MazeObjects.Levels;
-import gui.Instruments;
+import gui.UIFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -14,7 +14,7 @@ import management.ScoreManager;
 
 public class RankingScreen extends BaseScreen {
 
-    private final String CARD_COLOR = "#00a5de";
+    private static final String CARD_COLOR = "#00a5de";
     
     @Override
     protected Node createContent() {
@@ -29,11 +29,10 @@ public class RankingScreen extends BaseScreen {
             difficultyBox.getChildren().add(createDifficultyCard(level.getName(), ScoreManager.getScore(level.getName())));
         }
 
-        // Нижні кнопки
         HBox bottomButtons = new HBox(40);
         bottomButtons.setAlignment(Pos.CENTER);
 
-        Button menuBtn = Instruments.createButton("MENU", 300, 120, 2, MAIN_BUTTON_COLOR, 40, 1.5);
+        Button menuBtn = UIFactory.createButton("MENU", 300, 120, 2, MAIN_BUTTON_COLOR, 40, 1.5);
         menuBtn.setOnAction(e -> ScreenManager.getInstance().switchScreen("menu"));
 
         bottomButtons.getChildren().addAll(menuBtn);
@@ -56,9 +55,9 @@ public class RankingScreen extends BaseScreen {
                 + "-fx-background-radius: 10;"
         );
 
-        Text levelText = Instruments.createOutlinedText(level, 60, 1.5);
-        Text sizeTextNode = Instruments.createOutlinedText("High score:", 40, 1.5);
-        Text winTextNode = Instruments.createOutlinedText(""+score, 45, 1.5);
+        Text levelText = UIFactory.createOutlinedText(level, 60, 1.5);
+        Text sizeTextNode = UIFactory.createOutlinedText("High score:", 40, 1.5);
+        Text winTextNode = UIFactory.createOutlinedText(""+score, 45, 1.5);
 
         card.getChildren().addAll(levelText, sizeTextNode, winTextNode);
         return card;

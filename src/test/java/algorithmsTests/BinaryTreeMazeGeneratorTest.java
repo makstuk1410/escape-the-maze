@@ -1,7 +1,6 @@
 
 package algorithmsTests;
 
-import algorithms.BinaryTreeMazeGenerator;
 import algorithms.GeneratorType;
 
 

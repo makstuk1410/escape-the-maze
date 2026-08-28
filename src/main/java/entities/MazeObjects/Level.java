@@ -20,30 +20,18 @@ public class Level {
         this.hardness = hardness;
     }
 
-    /**
-     * @return the name
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * @return the width
-     */
     public int getWidth() {
         return width;
     }
 
-    /**
-     * @return the height
-     */
     public int getHeight() {
         return height;
     }
 
-    /**
-     * @return the ways
-     */
     public int getHardness() {
         return hardness;
     }
