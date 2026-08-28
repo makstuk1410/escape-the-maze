@@ -3,11 +3,10 @@ package gui.Game;
 import managment.GameConfig;
 
 import entities.MazeObjects.Player;
+import entities.MazeObjects.Levels;
 import entities.MazeObjects.Maze;
-import entities.Cells.End;
-import entities.Cells.Cell;
 import gui.Instruments;
-import javafx.animation.AnimationTimer;
+import gui.mainScreens.ScreenManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
@@ -26,52 +25,86 @@ import javafx.scene.CacheHint;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import managment.ScoreManager;
-import entities.MazeObjects.Timer;
+import game.GameTimer;
+import game.effects.FogEffect;
+import entities.Tiles.EndTile;
+import entities.Tiles.Tile;
+import game.GameState;
 
 public class GameScreen extends StackPane {
 
     public static final Canvas canvas = new Canvas(11 * GameConfig.TILE_SIZE, 11 * GameConfig.TILE_SIZE);
     public static final GraphicsContext gc = canvas.getGraphicsContext2D();
-    
-    private final Set<KeyCode> pressedKeys = new HashSet<>();
-    
-    private static final Text score = Instruments.createOutlinedText("Score: " + ScoreManager.getCurrentScore(), 51, 2);
-    
+    private final InputController inputController = new InputController();
+
+    private final Text scoreText;
+    private final Text timerText;
     private final HealthBar healthBar;
     private final Player player;
-    private final Timer timer;
+    private final GameTimer timer;
     private final Maze maze;
-    
+    private final GameState gameState;
+    private final FogEffect fogEffect;
+
     private boolean isPopupActive = false;
-    
-    private double cameraOffsetX = 0;
-    private double cameraOffsetY = 0;
+
+    private final Camera camera;
 
     private final GameRenderer renderer = new GameRenderer();
-    private final MovementController movementController = new MovementController();
+    private final PlayerController playerController;
     private EffectProcessor effectProcessor;
+    private GameLoop gameLoop;
 
     public static final Canvas fogCanvas = new Canvas(11 * GameConfig.TILE_SIZE, 11 * GameConfig.TILE_SIZE);
     public static final GraphicsContext fogGC = fogCanvas.getGraphicsContext2D();
 
-    public GameScreen(Player player, Maze maze, Timer timer) {
-        this.player = player;
+    public GameScreen(GameState gameState, Maze maze, GameTimer timer) {
+        this.gameState = gameState;
+        this.player = gameState.getPlayer();
         this.healthBar = new HealthBar(player);
         this.timer = timer;
         this.maze = maze;
+        this.playerController = new PlayerController(player);
+        this.fogEffect = new FogEffect(fogGC);
+        this.scoreText = Instruments.createOutlinedText(
+                "Score: 0",
+                51,
+                2);
 
+        this.timerText = Instruments.createOutlinedText(
+                timer.getFormattedTime(),
+                40,
+                1);
+        this.camera = new Camera(
+                canvas.getWidth(),
+                canvas.getHeight());
         initializePlayerPosition();
         setupCanvasEvents();
         setupLayout();
         setupTopBar();
         setupEffectProcessor();
-        setupAnimation();
+        setupGameLoop();
         setEndCallback();
 
     }
 
-    public static void updateScore() {
-        score.setText("Score: " + ScoreManager.getCurrentScore());
+
+
+    private void setupGameLoop() {
+        gameLoop = new GameLoop(deltaTime -> {
+
+            if (!isPopupActive) {
+                handleMovement();
+                updateTimer(deltaTime);
+                if (gameState.isFogActive()) {
+                    fogEffect.start();
+                }
+            }
+
+            draw();
+        });
+
+        gameLoop.start();
     }
 
     private void initializePlayerPosition() {
@@ -85,42 +118,19 @@ public class GameScreen extends StackPane {
 
         canvas.setOnKeyPressed(e -> {
             if (!isPopupActive) {
-                pressedKeys.add(e.getCode());
-            }
-            if (e.getCode() == KeyCode.SPACE && !player.isJumping()) {
-                startJumpAnimation();
+                inputController.press(e.getCode());
             }
 
+            if (e.getCode() == KeyCode.SPACE) {
+                playerController.jump();
+            }
         });
 
         canvas.setOnKeyReleased(e -> {
             if (!isPopupActive) {
-                pressedKeys.remove(e.getCode());
+                inputController.release(e.getCode());
             }
         });
-    }
-
-    private void startJumpAnimation() {
-        player.setJumping(true);
-
-        final double maxScale = 1.5;
-        final double durationMs = 650;
-
-        javafx.beans.property.DoubleProperty scaleProp = new javafx.beans.property.SimpleDoubleProperty(1.0);
-        scaleProp.addListener((obs, oldVal, newVal) -> player.setScale(newVal.doubleValue()));
-
-        Timeline jumpTimeline = new Timeline(
-                new KeyFrame(Duration.ZERO, new KeyValue(scaleProp, 1.0)),
-                new KeyFrame(Duration.millis(durationMs / 2), new KeyValue(scaleProp, maxScale)),
-                new KeyFrame(Duration.millis(durationMs), new KeyValue(scaleProp, 1.0))
-        );
-
-        jumpTimeline.setOnFinished(e -> {
-            player.setScale(1.0);
-            player.setJumping(false);
-        });
-
-        jumpTimeline.play();
     }
 
     private void setupLayout() {
@@ -138,104 +148,99 @@ public class GameScreen extends StackPane {
         StackPane.setMargin(healthBar, new Insets(50));
         getChildren().add(healthBar);
 
-        StackPane.setAlignment(score, Pos.TOP_LEFT);
+        StackPane.setAlignment(scoreText, Pos.TOP_LEFT);
 
-        StackPane.setMargin(score, new Insets(50));
-        getChildren().add(score);
+        StackPane.setMargin(scoreText, new Insets(50));
+        getChildren().add(scoreText);
     }
 
     private void setupTopBar() {
         timer.setOnTimeEnd(() -> showPopup("Time's up!"));
-        timer.start();
 
-        HBox topBar = new HBox(timer.getLabel());
+        HBox topBar = new HBox(timerText);
         topBar.setPadding(new Insets(10));
         topBar.setAlignment(Pos.TOP_CENTER);
+
         StackPane.setAlignment(topBar, Pos.TOP_LEFT);
+
         getChildren().add(topBar);
     }
 
     private void setupEffectProcessor() {
-        effectProcessor = new EffectProcessor(maze.getCellMaze(), player, () -> showPopup("You Died!"), healthBar);
+        effectProcessor = new EffectProcessor(maze.getTileMaze(), gameState, () -> showPopup("You Died!"), healthBar);
         effectProcessor.start();
     }
 
-    private void setupAnimation() {
-        AnimationTimer animationTimer = new AnimationTimer() {
-            private long lastUpdate = 0;
-            private final long frameTime = 1_000_000_000 / 120;
-
-            @Override
-            public void handle(long now) {
-                if (now - lastUpdate >= frameTime) {
-                    if (!isPopupActive) {
-                        handleMovement();
-                    }
-                    draw();
-                    lastUpdate = now;
-                }
-            }
-        };
-        animationTimer.start();
-    }
-
     private void setEndCallback() {
-        Cell end = (maze.getCellMaze())[maze.getEndY()][maze.getEndX()];
-        if (end instanceof End endCell) {
+        Tile end = (maze.getTileMaze())[maze.getEndY()][maze.getEndX()];
+        if (end instanceof EndTile endCell) {
             endCell.setOnReached(() -> showPopup("Victory"));
         }
     }
 
     private void handleMovement() {
-        int dx = 0, dy = 0;
-        if (pressedKeys.contains(KeyCode.W)) {
-            dy -= GameConfig.SPEED;
-        }
-        if (pressedKeys.contains(KeyCode.S)) {
-            dy += GameConfig.SPEED;
-        }
-        if (pressedKeys.contains(KeyCode.A)) {
-            dx -= GameConfig.SPEED;
-        }
-        if (pressedKeys.contains(KeyCode.D)) {
-            dx += GameConfig.SPEED;
-        }
-
-        movementController.movePlayer(player, dx, 0, GameConfig.SPEED, maze.getCellMaze()); // спочатку по X
-        movementController.movePlayer(player, 0, dy, GameConfig.SPEED, maze.getCellMaze());
+        playerController.move(
+                inputController.getPressedKeys(),
+                maze.getTileMaze(),
+                gameState);
     }
 
     public void showPopup(String text) {
         isPopupActive = true;
-        timer.stop();
+
+        gameLoop.stop();
         effectProcessor.stop();
 
-        Rectangle overlay = new Rectangle(canvas.getWidth(), canvas.getHeight(), Color.rgb(0, 0, 0, 0.5));
-        ResultWindow popup = new ResultWindow(text, 100);
-        popup.setMaxSize(300, 200);
+        int currentScore = gameState.getScore();
 
+        ScoreManager.updateScore(
+                Levels.getLevel(Levels.chosenLevel).getName(),
+                currentScore);
+
+        Rectangle overlay = new Rectangle(
+                canvas.getWidth(),
+                canvas.getHeight(),
+                Color.rgb(0, 0, 0, 0.5));
+
+        ResultWindow popup = new ResultWindow(
+                text,
+                currentScore,
+                () -> ScreenManager.getInstance().switchScreen("menu"),
+                () -> ScreenManager.getInstance().switchScreen("game"));
+
+        popup.setMaxSize(300, 200);
         StackPane.setAlignment(popup, Pos.CENTER);
         getChildren().addAll(overlay, popup);
         canvas.setFocusTraversable(false);
     }
 
     private void draw() {
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-
-        double centerX = canvas.getWidth() / 2;
-        double centerY = canvas.getHeight() / 2;
-
-        double px = player.getPositionX();
-        double py = player.getPositionY();
-
-        cameraOffsetX = clamp(px - centerX + GameConfig.TILE_SIZE / 2, 0, maze.getCellMaze()[0].length * GameConfig.TILE_SIZE - canvas.getWidth());
-        cameraOffsetY = clamp(py - centerY + GameConfig.TILE_SIZE / 2, 0, maze.getCellMaze().length * GameConfig.TILE_SIZE - canvas.getHeight());
-
-        renderer.drawMaze(gc, maze.getCellMaze(), cameraOffsetX, cameraOffsetY, canvas.getWidth(), canvas.getHeight());
-        renderer.drawPlayer(gc, player, cameraOffsetX, cameraOffsetY);
+        gc.clearRect(
+                0,
+                0,
+                canvas.getWidth(),
+                canvas.getHeight());
+        camera.update(
+                player,
+                maze.getTileMaze()[0].length,
+                maze.getTileMaze().length);
+        renderer.drawMaze(
+                gc,
+                maze.getTileMaze(),
+                camera.getOffsetX(),
+                camera.getOffsetY(),
+                canvas.getWidth(),
+                canvas.getHeight());
+        renderer.drawPlayer(
+                gc,
+                player,
+                camera.getOffsetX(),
+                camera.getOffsetY());
     }
 
-    private double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+    private void updateTimer(double deltaTime) {
+        if (timer.update(deltaTime)) {
+            timerText.setText(timer.getFormattedTime());
+        }
     }
 }

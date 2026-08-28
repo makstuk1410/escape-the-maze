@@ -1,14 +1,21 @@
 package gui.Game;
 
-import entities.Cells.Cell;
 import entities.MazeObjects.Player;
+import entities.Tiles.Tile;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import managment.GameConfig;
 
 public class GameRenderer {
+    private final TileRenderer tileRenderer = new TileRenderer();
+    private final PlayerRenderer playerRenderer = new PlayerRenderer();
 
-    public void drawMaze(GraphicsContext gc, Cell[][] maze, double offsetX, double offsetY, double canvasWidth, double canvasHeight) {
+    public void drawMaze(GraphicsContext gc, 
+            Tile[][] maze, 
+            double offsetX, 
+            double offsetY, 
+            double canvasWidth, 
+            double canvasHeight
+    ) {
         int startCol = (int) (offsetX / GameConfig.TILE_SIZE);
         int startRow = (int) (offsetY / GameConfig.TILE_SIZE);
 
@@ -20,33 +27,26 @@ public class GameRenderer {
                 if (row < 0 || col < 0 || row >= maze.length || col >= maze[0].length) {
                     continue;
                 }
-                Image img = maze[row][col].getImg();
-                if (img == null) {
-                    continue;
-                }
 
                 double x = col * GameConfig.TILE_SIZE - offsetX;
                 double y = row * GameConfig.TILE_SIZE - offsetY;
 
-                double visibleX = Math.max(0, -x);
-                double visibleY = Math.max(0, -y);
-                double drawWidth = Math.min(GameConfig.TILE_SIZE - visibleX, canvasWidth - x);
-                double drawHeight = Math.min(GameConfig.TILE_SIZE - visibleY, canvasHeight - y);
-
-                gc.drawImage(img, visibleX, visibleY, drawWidth, drawHeight,
-                        x + visibleX, y + visibleY, drawWidth, drawHeight);
+                tileRenderer.draw(
+                        gc,
+                        maze[row][col],
+                        x,
+                        y
+                );
             }
         }
     }
 
     public void drawPlayer(GraphicsContext gc, Player player, double offsetX, double offsetY) {
-        double scale = player.getScale();
-        double baseSize = GameConfig.TILE_SIZE - 20;
-        double drawSize = baseSize * scale;
-
-        double screenX = player.getPositionX() - offsetX + (baseSize - drawSize) / 2;
-        double screenY = player.getPositionY() - offsetY + (baseSize - drawSize) / 2;
-
-        gc.drawImage(player.getImg(), screenX, screenY, drawSize, drawSize);
+        playerRenderer.draw(
+                gc,
+                player,
+                offsetX,
+                offsetY
+        );
     }
 }
