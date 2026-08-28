@@ -2,8 +2,9 @@ package algorithms;
 
 import entities.MazeObjects.MazeGrid;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 public class DFSMazeGenerator extends MazeGenerator {
 
@@ -16,7 +17,7 @@ public class DFSMazeGenerator extends MazeGenerator {
     public void createRandomMaze() {
         fillMaze();
 
-        Stack<int[]> stack = new Stack<>();
+        Deque<int[]> stack = new ArrayDeque<>();
         stack.push(new int[]{maze.getStartY() + 1, maze.getStartX()});
         maze.setValue(maze.getStartY(), maze.getStartX(), 0);
         maze.setValue(maze.getStartY() + 1, maze.getStartX(), 0);

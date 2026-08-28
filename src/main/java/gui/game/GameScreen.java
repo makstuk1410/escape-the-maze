@@ -3,7 +3,7 @@ package gui.game;
 import management.GameConfig;
 
 import entities.MazeObjects.Player;
-import entities.MazeObjects.Levels;
+import entities.MazeObjects.Level;
 import entities.MazeObjects.Maze;
 import gui.Instruments;
 import gui.mainScreens.ScreenManager;
@@ -39,6 +39,7 @@ public class GameScreen extends StackPane {
     private final Player player;
     private final GameTimer timer;
     private final Maze maze;
+    private final Level level;
     private final GameState gameState;
     private final FogEffect fogEffect;
 
@@ -56,12 +57,13 @@ public class GameScreen extends StackPane {
             GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE);
         private final GraphicsContext fogGC = fogCanvas.getGraphicsContext2D();
 
-    public GameScreen(GameState gameState, Maze maze, GameTimer timer) {
+    public GameScreen(GameState gameState, Maze maze, GameTimer timer, Level level) {
         this.gameState = gameState;
         this.player = gameState.getPlayer();
         this.healthBar = new HealthBar(player);
         this.timer = timer;
         this.maze = maze;
+        this.level = level;
         this.playerController = new PlayerController(player);
         this.fogEffect = new FogEffect(fogGC);
         this.scoreText = Instruments.createOutlinedText(
@@ -94,6 +96,7 @@ public class GameScreen extends StackPane {
             if (!isPopupActive) {
                 handleMovement();
                 updateTimer(deltaTime);
+                healthBar.update();
                 if (gameState.isFogActive()) {
                     fogEffect.start();
                 }
@@ -165,7 +168,7 @@ public class GameScreen extends StackPane {
     }
 
     private void setupEffectProcessor() {
-        effectProcessor = new EffectProcessor(maze.getTileMaze(), gameState, () -> showPopup("You Died!"), healthBar);
+        effectProcessor = new EffectProcessor(maze.getTileMaze(), gameState, () -> showPopup("You Died!"));
         effectProcessor.start();
     }
 
@@ -192,7 +195,7 @@ public class GameScreen extends StackPane {
         int currentScore = gameState.getScore();
 
         ScoreManager.updateScore(
-                Levels.getLevel(Levels.chosenLevel).getName(),
+                level.getName(),
                 currentScore);
 
         Rectangle overlay = new Rectangle(

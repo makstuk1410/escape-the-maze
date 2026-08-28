@@ -1,22 +1,22 @@
 
 package entities.MazeObjects;
 
-import algorithms.MazeGenerator;
+import algorithms.GeneratorType;
 
 
 public class Level {
     private final String name;
     private final int width;
     private final int height;
-    private final Class<? extends MazeGenerator> generatorClass;
+    private final GeneratorType generatorType;
     private final int hardness;
     
     
-    public Level(String name, int height, int width, Class<? extends MazeGenerator> generatorClass, int hardness){
+    public Level(String name, int height, int width, GeneratorType generatorType, int hardness){
         this.name = name;
         this.height = height;
         this.width = width;
-        this.generatorClass = generatorClass;
+        this.generatorType = generatorType;
         this.hardness = hardness;
     }
 
@@ -48,8 +48,8 @@ public class Level {
         return hardness;
     }
     
-    public Class<? extends MazeGenerator> getGeneratorClass(){
-        return generatorClass;
+    public GeneratorType getGeneratorType(){
+        return generatorType;
     }
     
     
