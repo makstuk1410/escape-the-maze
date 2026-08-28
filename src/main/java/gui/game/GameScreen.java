@@ -5,7 +5,7 @@ import management.GameConfig;
 import entities.MazeObjects.Player;
 import entities.MazeObjects.Level;
 import entities.MazeObjects.Maze;
-import gui.Instruments;
+import gui.UIFactory;
 import gui.mainScreens.ScreenManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -21,16 +21,15 @@ import javafx.scene.text.Text;
 import management.ScoreManager;
 import game.GameTimer;
 import game.effects.FogEffect;
-import entities.Tiles.EndTile;
-import entities.Tiles.Tile;
 import game.GameState;
+import entities.Tiles.Tile;
 
 public class GameScreen extends StackPane {
 
     private final Canvas canvas = new Canvas(
             GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE,
             GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE);
-    private final GraphicsContext gc = canvas.getGraphicsContext2D();
+    private final GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
     private final InputController inputController = new InputController();
 
     private final Text scoreText;
@@ -42,8 +41,9 @@ public class GameScreen extends StackPane {
     private final Level level;
     private final GameState gameState;
     private final FogEffect fogEffect;
+    private final Tile[][] tiles;
 
-    private boolean isPopupActive = false;
+    private boolean popupActive;
 
     private final Camera camera;
 
@@ -52,10 +52,10 @@ public class GameScreen extends StackPane {
     private EffectProcessor effectProcessor;
     private GameLoop gameLoop;
 
-        private final Canvas fogCanvas = new Canvas(
+    private final Canvas fogCanvas = new Canvas(
             GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE,
             GameConfig.VIEW_SIZE * GameConfig.TILE_SIZE);
-        private final GraphicsContext fogGC = fogCanvas.getGraphicsContext2D();
+    private final GraphicsContext fogGraphicsContext = fogCanvas.getGraphicsContext2D();
 
     public GameScreen(GameState gameState, Maze maze, GameTimer timer, Level level) {
         this.gameState = gameState;
@@ -64,17 +64,18 @@ public class GameScreen extends StackPane {
         this.timer = timer;
         this.maze = maze;
         this.level = level;
+        this.tiles = maze.getTileMaze();
         this.playerController = new PlayerController(player);
-        this.fogEffect = new FogEffect(fogGC);
-        this.scoreText = Instruments.createOutlinedText(
+        this.fogEffect = new FogEffect(fogGraphicsContext);
+        this.scoreText = UIFactory.createOutlinedText(
                 "Score: 0",
-            GameConfig.SCORE_FONT_SIZE,
-            GameConfig.SCORE_BORDER_SIZE);
+                GameConfig.SCORE_FONT_SIZE,
+                GameConfig.SCORE_BORDER_SIZE);
 
-        this.timerText = Instruments.createOutlinedText(
+        this.timerText = UIFactory.createOutlinedText(
                 timer.getFormattedTime(),
-            GameConfig.TIMER_FONT_SIZE,
-            GameConfig.TIMER_BORDER_SIZE);
+                GameConfig.TIMER_FONT_SIZE,
+                GameConfig.TIMER_BORDER_SIZE);
         this.camera = new Camera(
                 canvas.getWidth(),
                 canvas.getHeight());
@@ -84,7 +85,6 @@ public class GameScreen extends StackPane {
         setupTopBar();
         setupEffectProcessor();
         setupGameLoop();
-        setEndCallback();
 
     }
 
@@ -93,10 +93,13 @@ public class GameScreen extends StackPane {
     private void setupGameLoop() {
         gameLoop = new GameLoop(deltaTime -> {
 
-            if (!isPopupActive) {
+            if (!popupActive) {
                 handleMovement();
                 updateTimer(deltaTime);
                 healthBar.update();
+                if (gameState.isGameWon()) {
+                    showPopup("Victory");
+                }
                 if (gameState.isFogActive()) {
                     fogEffect.start();
                 }
@@ -118,7 +121,7 @@ public class GameScreen extends StackPane {
         canvas.requestFocus();
 
         canvas.setOnKeyPressed(e -> {
-            if (!isPopupActive) {
+            if (!popupActive) {
                 inputController.press(e.getCode());
             }
 
@@ -128,7 +131,7 @@ public class GameScreen extends StackPane {
         });
 
         canvas.setOnKeyReleased(e -> {
-            if (!isPopupActive) {
+            if (!popupActive) {
                 inputController.release(e.getCode());
             }
         });
@@ -168,26 +171,23 @@ public class GameScreen extends StackPane {
     }
 
     private void setupEffectProcessor() {
-        effectProcessor = new EffectProcessor(maze.getTileMaze(), gameState, () -> showPopup("You Died!"));
+        effectProcessor = new EffectProcessor(tiles, gameState, () -> showPopup("You Died!"));
         effectProcessor.start();
-    }
-
-    private void setEndCallback() {
-        Tile end = (maze.getTileMaze())[maze.getEndY()][maze.getEndX()];
-        if (end instanceof EndTile endCell) {
-            endCell.setOnReached(() -> showPopup("Victory"));
-        }
     }
 
     private void handleMovement() {
         playerController.move(
                 inputController.getPressedKeys(),
-                maze.getTileMaze(),
+                tiles,
                 gameState);
     }
 
     public void showPopup(String text) {
-        isPopupActive = true;
+        if (popupActive) {
+            return;
+        }
+
+        popupActive = true;
 
         gameLoop.stop();
         effectProcessor.stop();
@@ -216,24 +216,24 @@ public class GameScreen extends StackPane {
     }
 
     private void draw() {
-        gc.clearRect(
+        graphicsContext.clearRect(
                 0,
                 0,
                 canvas.getWidth(),
                 canvas.getHeight());
         camera.update(
                 player,
-                maze.getTileMaze()[0].length,
-                maze.getTileMaze().length);
+            tiles[0].length,
+            tiles.length);
         renderer.drawMaze(
-                gc,
-                maze.getTileMaze(),
+                graphicsContext,
+                tiles,
                 camera.getOffsetX(),
                 camera.getOffsetY(),
                 canvas.getWidth(),
                 canvas.getHeight());
         renderer.drawPlayer(
-                gc,
+                graphicsContext,
                 player,
                 camera.getOffsetX(),
                 camera.getOffsetY());

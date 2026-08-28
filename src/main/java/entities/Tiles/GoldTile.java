@@ -5,7 +5,7 @@ import management.GameConfig;
 
 public class GoldTile implements Tile {
 
-    boolean collected = false;
+	private boolean collected;
 	
 	public boolean isCollected() {
 		return collected;

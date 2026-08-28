@@ -19,7 +19,7 @@ public class BinaryTreeMazeGenerator extends MazeGenerator {
 
                 List<int[]> possibleDirections = new ArrayList<>();
                 if (y < maze.getHeight() - 2) {
-                    possibleDirections.add(new int[]{1, 0}); // вниз
+                    possibleDirections.add(new int[]{1, 0});
                 }
                 if (x < maze.getWidth() - 2) {
                     possibleDirections.add(new int[]{0, 1});
@@ -31,7 +31,7 @@ public class BinaryTreeMazeGenerator extends MazeGenerator {
                     int wallY = y + dir[0];
                     int wallX = x + dir[1];
 
-                    maze.setValue(wallY, wallX, 0); // Ламаємо стіну
+                    maze.setValue(wallY, wallX, 0);
                 }
 
             }

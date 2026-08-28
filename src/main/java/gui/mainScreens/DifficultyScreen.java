@@ -2,7 +2,7 @@ package gui.mainScreens;
 
 import entities.MazeObjects.Level;
 import entities.MazeObjects.Levels;
-import gui.Instruments;
+import gui.UIFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -13,8 +13,8 @@ import javafx.scene.text.Text;
 
 public class DifficultyScreen extends BaseScreen {
 
-    private final String CARD_COLOR = "#00a5de";
-    private final String CHOOSE_BUTTON_COLOR = "#0086b5";
+    private static final String CARD_COLOR = "#00a5de";
+    private static final String CHOOSE_BUTTON_COLOR = "#0086b5";
     
     @Override
     protected Node createContent() {
@@ -32,10 +32,10 @@ public class DifficultyScreen extends BaseScreen {
         HBox bottomButtons = new HBox(40);
         bottomButtons.setAlignment(Pos.CENTER);
 
-        Button menuBtn = Instruments.createButton("MENU", 300, 120, 2, MAIN_BUTTON_COLOR, 40, 1.5);
+        Button menuBtn = UIFactory.createButton("MENU", 300, 120, 2, MAIN_BUTTON_COLOR, 40, 1.5);
         menuBtn.setOnAction(e -> ScreenManager.getInstance().switchScreen("menu"));
 
-        Button playBtn = Instruments.createButton("PLAY", 300, 120, 2, MAIN_BUTTON_COLOR, 40, 1.5);
+        Button playBtn = UIFactory.createButton("PLAY", 300, 120, 2, MAIN_BUTTON_COLOR, 40, 1.5);
         playBtn.setOnAction(e -> ScreenManager.getInstance().switchScreen("game"));
 
         bottomButtons.getChildren().addAll(menuBtn, playBtn);
@@ -58,11 +58,11 @@ public class DifficultyScreen extends BaseScreen {
                 + "-fx-background-radius: 10;"
         );
 
-        Text levelText = Instruments.createOutlinedText(Levels.getLevel(level).getName(), 50, 1.5);
-        Text sizeTextNode = Instruments.createOutlinedText("Size: " + sizeText, 45, 1.5);
-        Text winTextNode = Instruments.createOutlinedText(winText, 45, 1.5);
+        Text levelText = UIFactory.createOutlinedText(Levels.getLevel(level).getName(), 50, 1.5);
+        Text sizeTextNode = UIFactory.createOutlinedText("Size: " + sizeText, 45, 1.5);
+        Text winTextNode = UIFactory.createOutlinedText(winText, 45, 1.5);
 
-        Button chooseBtn = Instruments.createButton("CHOOSE", 150, 50, 2, CHOOSE_BUTTON_COLOR, 40, 1.5);
+        Button chooseBtn = UIFactory.createButton("CHOOSE", 150, 50, 2, CHOOSE_BUTTON_COLOR, 40, 1.5);
         chooseBtn.setOnAction(e -> {
             ScreenManager.getInstance().setSelectedLevel(Levels.getLevel(level));
         });

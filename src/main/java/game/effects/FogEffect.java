@@ -8,12 +8,11 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import management.GameConfig;
 
 public class FogEffect {
 
     private static final double MAX_SCALE = 80;
-    private static final double DURATION_MS = 4000;
-
     private final GraphicsContext graphics;
 
     private boolean active = false;
@@ -42,15 +41,15 @@ public class FogEffect {
                         new KeyValue(scale, 1.0)
                 ),
                 new KeyFrame(
-                        Duration.millis(DURATION_MS / 4),
+                        Duration.millis(GameConfig.FOG_DURATION_MS / 4.0),
                         new KeyValue(scale, MAX_SCALE)
                 ),
                 new KeyFrame(
-                        Duration.millis(DURATION_MS * 3 / 4),
+                        Duration.millis(GameConfig.FOG_DURATION_MS * 3 / 4.0),
                         new KeyValue(scale, MAX_SCALE)
                 ),
                 new KeyFrame(
-                        Duration.millis(DURATION_MS),
+                        Duration.millis(GameConfig.FOG_DURATION_MS),
                         new KeyValue(scale, 1.0)
                 )
         );

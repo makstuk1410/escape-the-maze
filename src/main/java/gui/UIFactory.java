@@ -10,7 +10,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 
-public class Instruments {
+public class UIFactory {
     private final static String TEXT_COLOR = "#00334f";
     private final static String TEXT_BORDER_COLOR = "#EEEEEE";
 
@@ -30,14 +30,14 @@ public class Instruments {
         styledText.setTranslateY(3); 
         
         StackPane centeredGraphic = new StackPane(styledText);
-        centeredGraphic.setPrefSize(width, height); // точно такий самий як кнопка
-        centeredGraphic.setAlignment(Pos.CENTER); // ❗ по центру
+        centeredGraphic.setPrefSize(width, height);
+        centeredGraphic.setAlignment(Pos.CENTER);
 
         Button btn = new Button();
         btn.setPrefWidth(width);
         btn.setPrefHeight(height);
-        btn.setText(""); // вимикаємо стандартний текст
-        btn.setGraphic(centeredGraphic); // вставляємо графіку
+        btn.setText("");
+        btn.setGraphic(centeredGraphic);
         btn.setStyle(
                 "-fx-background-color: "+color + ";"
                 + "-fx-background-radius: 30;"
@@ -54,7 +54,7 @@ public class Instruments {
 
         if (matcher.find()) {
             String originalHex = matcher.group(1);
-            String lighterHex = lightenColor(originalHex, 0.1); // 10% світліше
+            String lighterHex = lightenColor(originalHex, 0.1);
 
             String hoverStyle = defaultStyle.replace(
                     "#" + originalHex,

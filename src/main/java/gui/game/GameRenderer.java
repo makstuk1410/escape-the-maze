@@ -19,8 +19,10 @@ public class GameRenderer {
         int startCol = (int) (offsetX / GameConfig.TILE_SIZE);
         int startRow = (int) (offsetY / GameConfig.TILE_SIZE);
 
-        int maxCol = startCol + 11 + (offsetX % GameConfig.TILE_SIZE != 0 ? 1 : 0);
-        int maxRow = startRow + 11 + (offsetY % GameConfig.TILE_SIZE != 0 ? 1 : 0);
+        int maxCol = startCol + GameConfig.VIEW_SIZE
+            + (offsetX % GameConfig.TILE_SIZE != 0 ? 1 : 0);
+        int maxRow = startRow + GameConfig.VIEW_SIZE
+            + (offsetY % GameConfig.TILE_SIZE != 0 ? 1 : 0);
 
         for (int row = startRow; row < maxRow; row++) {
             for (int col = startCol; col < maxCol; col++) {

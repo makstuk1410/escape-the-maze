@@ -4,7 +4,10 @@ import entities.MazeObjects.Maze;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class BFSForTestting {
+public final class MazeTestUtils {
+
+    private MazeTestUtils() {
+    }
 
     static public boolean[][] bfs(Maze maze) {
         int height = maze.getHeight();
@@ -12,7 +15,7 @@ public class BFSForTestting {
         boolean[][] visited = new boolean[height][width];
 
         Queue<int[]> queue = new LinkedList<>();
-        queue.add(new int[]{maze.getStartY(), maze.getStartX()}); // [y, x]
+        queue.add(new int[]{maze.getStartY(), maze.getStartX()});
         visited[maze.getStartY()][maze.getStartX()] = true;
 
         int[] dx = {-1, 1, 0, 0};
@@ -30,7 +33,7 @@ public class BFSForTestting {
                 if (newX >= 0 && newX < width && newY >= 0 && newY < height && !visited[newY][newX]) {
                     if (maze.getValue(newY, newX) == 0) {
                         visited[newY][newX] = true;
-                        queue.add(new int[]{newY, newX}); // знову [y, x]
+                        queue.add(new int[]{newY, newX});
                     }
                 }
             }

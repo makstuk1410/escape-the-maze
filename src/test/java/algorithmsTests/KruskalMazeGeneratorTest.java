@@ -1,7 +1,6 @@
 
 package algorithmsTests;
 
-import algorithms.KruskalMazeGenerator;
 import algorithms.GeneratorType;
 
 

@@ -1,6 +1,6 @@
 package gui.mainScreens;
 
-import gui.Instruments;
+import gui.UIFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -13,8 +13,8 @@ import javafx.scene.text.Text;
 
 public abstract class BaseScreen extends VBox {
 
-    private String BACKGROUND_COLOR = "#90caf9";
-    protected final String MAIN_BUTTON_COLOR = "#00a5de";
+    private static final String BACKGROUND_COLOR = "#90caf9";
+    protected static final String MAIN_BUTTON_COLOR = "#00a5de";
 
     public BaseScreen() {
         setSpacing(20);
@@ -26,7 +26,7 @@ public abstract class BaseScreen extends VBox {
         )));
 
         
-        Text title = Instruments.createOutlinedText("ESCAPE THE MAZE", 130, 2);
+        Text title = UIFactory.createOutlinedText("ESCAPE THE MAZE", 130, 2);
         VBox.setMargin(title, new Insets(0, 0, 170, 0)); 
 
         getChildren().add(title);

@@ -1,7 +1,6 @@
 
 package algorithmsTests;
 
-import algorithms.PrimsMazeGenerator;
 import algorithms.GeneratorType;
 
 

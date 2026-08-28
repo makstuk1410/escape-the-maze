@@ -1,6 +1,6 @@
 package gui.mainScreens;
 
-import gui.Instruments;
+import gui.UIFactory;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
@@ -15,14 +15,14 @@ public class MenuScreen extends BaseScreen {
         VBox menuBox = new VBox(50);
         menuBox.setAlignment(Pos.CENTER);
 
-        Button startBtn = Instruments.createButton("START", 500, 120, 2, MAIN_BUTTON_COLOR, 60, 2.0);
-        Button rankingBtn = Instruments.createButton("RANKING", 500, 120, 2, MAIN_BUTTON_COLOR, 60, 2.0);
-        Button exitBtn = Instruments.createButton("EXIT", 500, 120, 2, MAIN_BUTTON_COLOR, 60, 2.0);
+        Button startBtn = UIFactory.createButton("START", 500, 120, 2, MAIN_BUTTON_COLOR, 60, 2.0);
+        Button rankingBtn = UIFactory.createButton("RANKING", 500, 120, 2, MAIN_BUTTON_COLOR, 60, 2.0);
+        Button exitBtn = UIFactory.createButton("EXIT", 500, 120, 2, MAIN_BUTTON_COLOR, 60, 2.0);
 
         
-        exitBtn.setOnAction(e -> System.exit(0)); // вихід
-        startBtn.setOnAction(e -> ScreenManager.getInstance().switchScreen("difficulty")); // вихід
-        rankingBtn.setOnAction(e -> ScreenManager.getInstance().switchScreen("ranking")); // вихід
+        exitBtn.setOnAction(e -> System.exit(0));
+        startBtn.setOnAction(e -> ScreenManager.getInstance().switchScreen("difficulty"));
+        rankingBtn.setOnAction(e -> ScreenManager.getInstance().switchScreen("ranking"));
 
         menuBox.getChildren().addAll(startBtn, rankingBtn, exitBtn);
         return menuBox;

@@ -24,7 +24,7 @@ public class PlayerController {
 
     public void move(
             Set<KeyCode> pressedKeys,
-            Tile[][] maze,
+            Tile[][] tiles,
             GameState gameState
     ) {
         int directionX = 0;
@@ -48,14 +48,14 @@ public class PlayerController {
 
         double length = Math.hypot(directionX, directionY);
         if (length > 0) {
-            movePlayer(directionX / length, directionY / length, maze, gameState);
+            movePlayer(directionX / length, directionY / length, tiles, gameState);
         }
     }
 
     private boolean movePlayer(
             double directionX,
             double directionY,
-            Tile[][] maze,
+            Tile[][] tiles,
             GameState gameState
     ) {
         double speed = gameState.getPlayerSpeed();
@@ -68,7 +68,7 @@ public class PlayerController {
             double newY = player.getPositionY()
                     + directionY * step;
 
-            double size = GameConfig.TILE_SIZE - 20;
+            double size = GameConfig.PLAYER_SIZE;
 
             int startRow = (int) (newY / GameConfig.TILE_SIZE);
             int endRow = (int) (
@@ -85,7 +85,7 @@ public class PlayerController {
                     endRow,
                     startCol,
                     endCol,
-                    maze
+                    tiles
             )) {
                 player.move(
                     directionX * step,
@@ -104,16 +104,16 @@ public class PlayerController {
             int endRow,
             int startCol,
             int endCol,
-            Tile[][] maze
+            Tile[][] tiles
     ) {
         for (int row = startRow; row <= endRow; row++) {
             for (int col = startCol; col <= endCol; col++) {
 
-                if (!isInBounds(row, col, maze)) {
+                if (!isInBounds(row, col, tiles)) {
                     return true;
                 }
 
-                if (!maze[row][col].isWalkable()) {
+                if (!tiles[row][col].isWalkable()) {
                     return true;
                 }
             }
@@ -125,12 +125,12 @@ public class PlayerController {
     private boolean isInBounds(
             int row,
             int col,
-            Tile[][] maze
+            Tile[][] tiles
     ) {
         return row >= 0
                 && col >= 0
-                && row < maze.length
-                && col < maze[0].length;
+                && row < tiles.length
+                && col < tiles[0].length;
     }
 
     public void jump() {

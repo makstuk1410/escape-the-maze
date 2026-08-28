@@ -22,7 +22,7 @@ public class PlayerRenderer {
     ) {
         double scale = player.getScale();
 
-        double baseSize = GameConfig.TILE_SIZE - 20;
+        double baseSize = GameConfig.PLAYER_SIZE;
         double drawSize = baseSize * scale;
 
         double screenX =
