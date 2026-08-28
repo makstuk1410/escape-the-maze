@@ -14,7 +14,6 @@ import game.GameState;
 public class GameManager {
     public GameManager(Stage primaryStage) {
         ScreenManager.getInstance().setStage(primaryStage);
-        ScreenManager.getInstance().switchScreen("menu");
         primaryStage.setTitle("Escape the Maze");
 
         primaryStage.setWidth(Screen.getPrimary().getBounds().getWidth());
@@ -22,6 +21,7 @@ public class GameManager {
         primaryStage.setMaximized(true);
 
         primaryStage.show();
+        ScreenManager.getInstance().switchScreen("menu");
     }
     
     

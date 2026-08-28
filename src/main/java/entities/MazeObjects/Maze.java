@@ -91,8 +91,8 @@ public class Maze {
 
         tiles[endY][endX] = new EndTile();
 
-        for (int row = 1; row < height - 1; row++) {
-            for (int col = (row % 2) + 1; col < width - 1; col += 2) {
+        for (int row = 1; row < tiles.length - 1; row++) {
+            for (int col = (row % 2) + 1; col < tiles[0].length - 1; col += 2) {
                 if (tiles[row][col] instanceof EmptyTile) {
                     if (random.nextDouble() < GameConfig.OBSTACLE_CHANCE) {
                         Supplier<Tile> obstacleSupplier = obstacles.get(random.nextInt(obstacles.size()));
