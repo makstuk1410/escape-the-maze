@@ -36,7 +36,6 @@ public class ScreenManager {
         Scene scene = new Scene(ScreenFactory.create(screenName));
         stage.setScene(scene);
         javafx.application.Platform.runLater(() -> {
-            stage.sizeToScene();
             stage.centerOnScreen();
         });
     }
