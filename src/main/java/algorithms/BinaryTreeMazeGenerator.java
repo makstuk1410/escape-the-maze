@@ -18,13 +18,6 @@ public class BinaryTreeMazeGenerator extends MazeGenerator {
                 maze.setValue(y, x, 0);
 
                 List<int[]> possibleDirections = new ArrayList<>();
-/*
-                if (y > 1) {
-                    possibleDirections.add(new int[]{-1, 0}); // вгору
-                }
-                if (x > 1) {
-                    possibleDirections.add(new int[]{0, -1}); // вліво
-                }*/
                 if (y < maze.getHeight() - 2) {
                     possibleDirections.add(new int[]{1, 0}); // вниз
                 }

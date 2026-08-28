@@ -1,6 +1,5 @@
 package entities.MazeObjects;
 
-import algorithms.MazeGenerator;
 import algorithms.MazeGeneratorFactory;
 import entities.Tiles.EmptyTile;
 import entities.Tiles.EndTile;
@@ -73,14 +72,14 @@ public class Maze {
     }
     //----------------------------------------------------------GETTERS-------------------------------------------------
 
-    public Maze(int height, int width, Class<? extends MazeGenerator> generatorClass) {
+    public Maze(int height, int width, algorithms.GeneratorType generatorType) {
         this.grid = new MazeGrid(height, width);
         this.height = grid.getHeight();
         this.width = grid.getWidth();
         this.startX = grid.getStartX();
         this.startY = grid.getStartY();
 
-        MazeGeneratorFactory.create(generatorClass, grid).createRandomMaze();
+        MazeGeneratorFactory.create(generatorType, grid).createRandomMaze();
         grid.setValue(startY, startX, 0);
         chooseEndPoint();
 

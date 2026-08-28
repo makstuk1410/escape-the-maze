@@ -2,11 +2,12 @@
 package algorithmsTests;
 
 import algorithms.PrimsMazeGenerator;
+import algorithms.GeneratorType;
 
 
 public class PrimsMazeGeneratorTest extends RandomMazeGeneratorTest {
     public PrimsMazeGeneratorTest(){
-        super(PrimsMazeGenerator.class);
+        super(GeneratorType.PRIM);
     }
     
 }

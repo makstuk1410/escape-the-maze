@@ -1,6 +1,7 @@
 package algorithmsTests;
 
 import algorithms.MazeGenerator;
+import algorithms.GeneratorType;
 import entities.MazeObjects.Maze;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -8,12 +9,12 @@ import org.junit.jupiter.api.Test;
 
 public abstract class RandomMazeGeneratorTest {
 
-    public RandomMazeGeneratorTest(Class<? extends MazeGenerator> generatorClass) {
-        maze = new Maze(10, 10, generatorClass);
-        this.generatorClass = generatorClass;
+    public RandomMazeGeneratorTest(GeneratorType generatorType) {
+        maze = new Maze(10, 10, generatorType);
+        this.generatorType = generatorType;
     }
     
-    protected Class<? extends MazeGenerator> generatorClass;
+    protected GeneratorType generatorType;
     protected Maze maze;
     protected MazeGenerator mg;
 
@@ -117,12 +118,12 @@ public abstract class RandomMazeGeneratorTest {
 
     //@Test
     public void testTime() {
-        System.out.println("Czas wykonania labiryntu dla algorytmu: " + generatorClass);
+        System.out.println("Czas wykonania labiryntu dla algorytmu: " + generatorType);
         for (int i = 50; i < 500; i += 10) {
             
             long start = System.nanoTime();
             
-            Maze newMaze = new Maze(i, i, generatorClass);
+            Maze newMaze = new Maze(i, i, generatorType);
 
             long end = System.nanoTime();
             

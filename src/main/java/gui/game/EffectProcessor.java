@@ -12,15 +12,13 @@ public class EffectProcessor {
     private final Tile[][] maze;
     private final Runnable onDeath;
     private final Timeline timeline;
-    private final HealthBar healthBar;
     private final GameState gameState;
 
 
-    public EffectProcessor(Tile[][] maze, GameState gameState, Runnable onDeathCallback, HealthBar healthBar) {
+    public EffectProcessor(Tile[][] maze, GameState gameState, Runnable onDeathCallback) {
         this.maze = maze;
         this.gameState = gameState;
         this.onDeath = onDeathCallback;
-        this.healthBar = healthBar;
 
         timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> applyEffects()));
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -52,8 +50,6 @@ public class EffectProcessor {
             }
         }
 
-        healthBar.update();
-        
         if (gameState.getPlayer().getHealthPoints() <= 0) {
             onDeath.run();
         }

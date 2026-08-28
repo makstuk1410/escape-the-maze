@@ -64,8 +64,7 @@ public class DifficultyScreen extends BaseScreen {
 
         Button chooseBtn = Instruments.createButton("CHOOSE", 150, 50, 2, CHOOSE_BUTTON_COLOR, 40, 1.5);
         chooseBtn.setOnAction(e -> {
-            Levels.chosenLevel = level;
-            System.out.println("Chosen: " + Levels.chosenLevel);
+            ScreenManager.getInstance().setSelectedLevel(Levels.getLevel(level));
         });
 
         card.getChildren().addAll(levelText, sizeTextNode, winTextNode, chooseBtn);

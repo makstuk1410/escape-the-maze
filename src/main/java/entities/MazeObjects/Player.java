@@ -80,14 +80,6 @@ public class Player {
         this.positionY = positionY;
     }
 
-    public double getCenterX() {
-        return positionX;
-    }
-
-    public double getCenterY() {
-        return positionY;
-    }
-
     public void move(double dx, double dy) {
         this.positionX += dx;
         this.positionY += dy;

@@ -1,7 +1,6 @@
 package management;
 
 import entities.MazeObjects.Level;
-import entities.MazeObjects.Levels;
 import entities.MazeObjects.Maze;
 import entities.MazeObjects.Player;
 import game.GameTimer;
@@ -26,12 +25,11 @@ public class GameManager {
     }
     
     
-    public static StackPane startGame() {
-        Level level = Levels.getLevel(Levels.chosenLevel);
-        Maze maze = new Maze(level.getHeight(), level.getWidth(), level.getGeneratorClass());
+    public static StackPane startGame(Level level) {
+        Maze maze = new Maze(level.getHeight(), level.getWidth(), level.getGeneratorType());
         Player player = new Player(maze.getStartY(), maze.getStartX());        
         GameTimer timer = new GameTimer(300);
         GameState gameState = new GameState(player);
-        return new GameScreen(gameState, maze, timer);
+        return new GameScreen(gameState, maze, timer, level);
     }
 }
