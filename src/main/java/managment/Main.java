@@ -7,7 +7,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        GameManager gameManager = new GameManager(primaryStage);
+        new GameManager(primaryStage);
     }
 
     public static void main(String[] args) {
@@ -15,8 +15,3 @@ public class Main extends Application {
     }
 
 }
-
-//TODO: 
-// wróg 
-// refaktoryzacja GameScreen
-// ewentualnie jeszcze inne przeszkody

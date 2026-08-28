@@ -1,32 +1,33 @@
 package entities.MazeObjects;
 
-import entities.Cells.Wall;
-import entities.Cells.Freeze;
-import entities.Cells.End;
-import entities.Cells.EmptyWay;
-import entities.Cells.Cell;
-import entities.Cells.Gold;
-import entities.Cells.Spikes;
 import algorithms.MazeGenerator;
-import entities.Cells.Fog;
+import entities.Tiles.EmptyTile;
+import entities.Tiles.EndTile;
+import entities.Tiles.FogTile;
+import entities.Tiles.FreezeTile;
+import entities.Tiles.GoldTile;
+import entities.Tiles.SpikesTile;
+import entities.Tiles.Tile;
+import entities.Tiles.Wall;
+
 import java.util.List;
 import java.util.Random;
 
 public class Maze {
 
     private int[][] maze;
-    private Cell[][] cellMaze;
+    private Tile[][] TileMaze;
     private final int height;
     private final int width;
     private final int startX;
     private final int startY;
     private int endX;
     private int endY;
-    private List<Class<? extends Cell>> obstacles = List.of(
-        Spikes.class,
-        Freeze.class,
-        Gold.class,
-        Fog.class
+    private List<Class<? extends Tile>> obstacles = List.of(
+        SpikesTile.class,
+        FreezeTile.class,
+        GoldTile.class,
+        FogTile.class
                 );
     
 
@@ -35,13 +36,13 @@ public class Maze {
         return maze;
     }
 
-    public Cell[][] getCellMaze() {
-        return cellMaze;
+    public Tile[][] getTileMaze() {
+        return TileMaze;
 
     }
 
-    public Cell getCellValue(int y, int x) {
-        return cellMaze[y][x];
+    public Tile getTileValue(int y, int x) {
+        return TileMaze[y][x];
     }
 
     public int getValue(int y, int x) {
@@ -123,28 +124,28 @@ public class Maze {
         maze[startY][startX] = 0;
         chooseEndPoint();
 
-        cellMaze = new Cell[this.height][this.width];
+        TileMaze = new Tile[this.height][this.width];
         for (int i = 0; i < this.height; i++) {
             for (int j = 0; j < this.width; j++) {
-                cellMaze[i][j] = (maze[i][j] == 0) ? new EmptyWay() : new Wall();
+                TileMaze[i][j] = (maze[i][j] == 0) ? new EmptyTile() : new Wall();
             }
         }
 
-        cellMaze[endY][endX] = new End();
+        TileMaze[endY][endX] = new EndTile();
 
         Random random = new Random();
 
         for (int row = 1; row < maze.length-1; row++) {
             for (int col = (row%2)+1; col < maze[0].length-1; col += 2) {
-                if (cellMaze[row][col] instanceof EmptyWay) {
+                if (TileMaze[row][col] instanceof EmptyTile) {
                     if (random.nextDouble() < 0.08) { // 10% шанс поставити перешкоду
                         
                         // Обираємо випадковий тип перешкоди
-                        Class<? extends Cell> clazz = obstacles.get(random.nextInt(obstacles.size()));
+                        Class<? extends Tile> clazz = obstacles.get(random.nextInt(obstacles.size()));
 
                         try {
-                            Cell obstacle = clazz.getDeclaredConstructor().newInstance(); // створюємо екземпляр
-                            cellMaze[row][col] = obstacle;
+                            Tile obstacle = clazz.getDeclaredConstructor().newInstance(); // створюємо екземпляр
+                            TileMaze[row][col] = obstacle;
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

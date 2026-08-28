@@ -2,7 +2,6 @@
 package gui.Game;
 
 import entities.MazeObjects.Player;
-import managment.GameManager;
 import javafx.geometry.Insets;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -18,8 +17,8 @@ public class HealthBar extends StackPane {
     private final int height = 38;
     private final Player player;
 
-    public HealthBar() {
-        player = GameManager.getPlayer();
+    public HealthBar(Player player) {
+        this.player = player;
 
         backgroundBar = new Rectangle(width, height, Color.DARKRED);
         backgroundBar.setStroke(Color.WHITE);

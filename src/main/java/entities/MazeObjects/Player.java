@@ -1,16 +1,37 @@
 package entities.MazeObjects;
 
-import java.net.URL;
-import javafx.scene.image.Image;
-
 public class Player {
 
     private int healthPoints;
     private int positionX;
     private int positionY;
-    private Image img;
     private boolean isJumping = false;
     private double scale = 1.0;
+    private int speed;
+
+    public enum PlayerEffect {
+        NONE,
+        DAMAGED,
+        FROZEN
+    }
+
+    private PlayerEffect effect = PlayerEffect.NONE;
+
+    public PlayerEffect getEffect() {
+        return effect;
+    }
+
+    public void setEffect(PlayerEffect effect) {
+        this.effect = effect;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
 
     public void setScale(double scale) {
         this.scale = scale;
@@ -32,33 +53,10 @@ public class Player {
         this.positionY = y;
         this.positionX = x;
         this.healthPoints = 100;
-        URL url = getClass().getResource("/entities/player.png");
-        if (url == null) {
-            System.err.println("⛔ Resource not found: /entities/player.png");
-        } else {
-            this.img = new Image(url.toExternalForm());
-        }
+        this.speed = 5;
     }
 
-    public void setImage(String image) {
-        URL url = getClass().getResource("/entities/" + image);
-        if (url == null) {
-            System.err.println("⛔ Resource not found: /entities/" + image);
-        } else {
-            this.img = new Image(url.toExternalForm());
-        }
-    }
-
-    public void resetImage() {
-        URL url = getClass().getResource("/entities/player.png");
-        if (url == null) {
-            System.err.println("⛔ Resource not found: /entities/player.png");
-        } else {
-            this.img = new Image(url.toExternalForm());
-        }
-    }
-
-    public void getDamage(int healthPoints) {
+    public void takeDamage(int healthPoints) {
         this.healthPoints -= healthPoints;
     }
 
@@ -93,10 +91,6 @@ public class Player {
     public void move(double dx, double dy) {
         this.positionX += dx;
         this.positionY += dy;
-    }
-
-    public Image getImg() {
-        return img;
     }
 
 }

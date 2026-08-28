@@ -1,45 +1,54 @@
 package managment;
 
 import entities.MazeObjects.Levels;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class ScoreManager {
 
-    private static int currentScore = 0;
     
     private static final String FILE_NAME = "score.txt";
-    private static final Map<String, Integer> scores = new HashMap<>();
+    private static final Map<String, Integer> scores = new LinkedHashMap<>();
 
     static {
         loadScores();
     }
 
     private static void loadScores() {
-        File file = new File(FILE_NAME);
-        if (!file.exists()) {
-            // створити файл з нульовими значеннями
-            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-                for (int i = 0; i < Levels.size(); i++) {
-                    String name = Levels.getLevel(i).getName();
-                    writer.println(name + "=0");
-                    scores.put(name, 0);
+        for (int i = 0; i < Levels.size(); i++) {
+            scores.put(Levels.getLevel(i).getName(), 0);
+        }
+
+        Path file = Path.of(FILE_NAME);
+        if (!Files.exists(file)) {
+            saveScores();
+            return;
+        }
+
+        try (BufferedReader reader = Files.newBufferedReader(file)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("=", 2);
+                if (parts.length != 2) {
+                    continue;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    String[] parts = line.split("=");
-                    if (parts.length == 2) {
-                        scores.put(parts[0].trim(), Integer.parseInt(parts[1].trim()));
+
+                try {
+                    int score = Integer.parseInt(parts[1].trim());
+                    if (scores.containsKey(parts[0].trim()) && score >= 0) {
+                        scores.put(parts[0].trim(), score);
                     }
+                } catch (NumberFormatException ignored) {
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            System.err.println("Could not load scores: " + e.getMessage());
         }
     }
 
@@ -56,24 +65,16 @@ public class ScoreManager {
     }
 
     private static void saveScores() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                Path.of(FILE_NAME),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
             for (Map.Entry<String, Integer> entry : scores.entrySet()) {
-                writer.println(entry.getKey() + "=" + entry.getValue());
+                writer.write(entry.getKey() + "=" + entry.getValue());
+                writer.newLine();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Could not save scores: " + e.getMessage());
         }
-    }
-
-    public static int getCurrentScore() {
-        return currentScore;
-    }
-
-    public static void setCurrentScore(int curScore) {
-        currentScore = curScore;
-    }
-    
-    public static void addScore(int plusScore){
-        currentScore += plusScore;
     }
 }

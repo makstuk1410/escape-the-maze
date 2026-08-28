@@ -1,24 +1,24 @@
 
 package gui.Game;
 
-import entities.Cells.Cell;
-import entities.MazeObjects.Player;
+import entities.Tiles.Tile;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
+import managment.GameConfig;
+import game.GameState; 
 
 public class EffectProcessor {
-    private final Cell[][] maze;
-    private final Player player;
+    private final Tile[][] maze;
     private final Runnable onDeath;
     private final Timeline timeline;
-    private static final int TILE_SIZE = 80;
     private final HealthBar healthBar;
+    private final GameState gameState;
 
 
-    public EffectProcessor(Cell[][] maze, Player player, Runnable onDeathCallback, HealthBar healthBar) {
+    public EffectProcessor(Tile[][] maze, GameState gameState, Runnable onDeathCallback, HealthBar healthBar) {
         this.maze = maze;
-        this.player = player;
+        this.gameState = gameState;
         this.onDeath = onDeathCallback;
         this.healthBar = healthBar;
 
@@ -35,26 +35,26 @@ public class EffectProcessor {
     }
 
     private void applyEffects() {
-        if (player.isJumping()) return;
+        if (gameState.getPlayer().isJumping()) return;
 
-        double x = player.getPositionX();
-        double y = player.getPositionY();
-        double size = TILE_SIZE - 20;
+        double x = gameState.getPlayer().getPositionX();
+        double y = gameState.getPlayer().getPositionY();
+        double size = GameConfig.TILE_SIZE - 20;
 
-        int startRow = (int) (y / TILE_SIZE);
-        int endRow = (int) ((y + size - 1) / TILE_SIZE);
-        int startCol = (int) (x / TILE_SIZE);
-        int endCol = (int) ((x + size - 1) / TILE_SIZE);
+        int startRow = (int) (y / GameConfig.TILE_SIZE);
+        int endRow = (int) ((y + size - 1) / GameConfig.TILE_SIZE);
+        int startCol = (int) (x / GameConfig.TILE_SIZE);
+        int endCol = (int) ((x + size - 1) / GameConfig.TILE_SIZE);
 
         for (int row = startRow; row <= endRow; row++) {
             for (int col = startCol; col <= endCol; col++) {
-                if (isInBounds(row, col)) maze[row][col].doEffects();
+                if (isInBounds(row, col)) maze[row][col].onEnter(gameState);
             }
         }
 
         healthBar.update();
         
-        if (player.getHealthPoints() <= 0) {
+        if (gameState.getPlayer().getHealthPoints() <= 0) {
             onDeath.run();
         }
     }
