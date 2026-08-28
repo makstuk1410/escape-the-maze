@@ -1,9 +1,9 @@
-package gui.Game;
+package gui.game;
 
 import entities.MazeObjects.Player;
 import entities.Tiles.Tile;
 import javafx.scene.canvas.GraphicsContext;
-import managment.GameConfig;
+import management.GameConfig;
 
 public class GameRenderer {
     private final TileRenderer tileRenderer = new TileRenderer();

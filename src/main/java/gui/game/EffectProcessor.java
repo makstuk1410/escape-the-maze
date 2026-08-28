@@ -1,11 +1,11 @@
 
-package gui.Game;
+package gui.game;
 
 import entities.Tiles.Tile;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
-import managment.GameConfig;
+import management.GameConfig;
 import game.GameState; 
 
 public class EffectProcessor {

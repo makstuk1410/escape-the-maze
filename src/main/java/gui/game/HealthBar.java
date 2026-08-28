@@ -1,5 +1,5 @@
 
-package gui.Game;
+package gui.game;
 
 import entities.MazeObjects.Player;
 import javafx.geometry.Insets;

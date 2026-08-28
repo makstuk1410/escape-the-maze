@@ -1,7 +1,7 @@
 package gui.mainScreens;
 
 import javafx.scene.Parent;
-import managment.GameManager;
+import management.GameManager;
 
 public class ScreenFactory {
     public static Parent create(String screenName) {

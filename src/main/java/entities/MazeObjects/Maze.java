@@ -1,6 +1,7 @@
 package entities.MazeObjects;
 
 import algorithms.MazeGenerator;
+import algorithms.MazeGeneratorFactory;
 import entities.Tiles.EmptyTile;
 import entities.Tiles.EndTile;
 import entities.Tiles.FogTile;
@@ -12,41 +13,39 @@ import entities.Tiles.Wall;
 
 import java.util.List;
 import java.util.Random;
+import java.util.function.Supplier;
 
 public class Maze {
 
-    private int[][] maze;
-    private Tile[][] TileMaze;
+    private final MazeGrid grid;
+    private final Tile[][] tiles;
     private final int height;
     private final int width;
     private final int startX;
     private final int startY;
+    private final Random random = new Random();
     private int endX;
     private int endY;
-    private List<Class<? extends Tile>> obstacles = List.of(
-        SpikesTile.class,
-        FreezeTile.class,
-        GoldTile.class,
-        FogTile.class
-                );
+        private final List<Supplier<Tile>> obstacles = List.of(
+            SpikesTile::new,
+            FreezeTile::new,
+            GoldTile::new,
+            FogTile::new
+        );
     
 
     //-----------------------------------------------------------GETTERS--------------------------------------------------
-    public int[][] getMaze() {
-        return maze;
-    }
-
     public Tile[][] getTileMaze() {
-        return TileMaze;
+        return tiles;
 
     }
 
     public Tile getTileValue(int y, int x) {
-        return TileMaze[y][x];
+        return tiles[y][x];
     }
 
     public int getValue(int y, int x) {
-        return maze[y][x];
+        return grid.getValue(y, x);
     }
 
     public int getHeight() {
@@ -74,81 +73,32 @@ public class Maze {
     }
     //----------------------------------------------------------GETTERS-------------------------------------------------
 
-    //--------------------------------------------SETTERS-------------------------------------------------------
-    public void setValue(int y, int x, int value) {
-        this.maze[y][x] = value;
-    }
-
-    public void setEndX(int endX) {
-        this.endX = endX;
-    }
-
-    public void setEndY(int endY) {
-        this.endY = endY;
-    }
-    //--------------------------------------------SETTERS-------------------------------------------------------
-
-    private Maze(int height, int width) {
-        this.height = 2 * height + 1;
-        this.width = 2 * width + 1;
-        this.maze = new int[this.height][this.width];
-
-        Random r = new Random();
-        startX = r.nextInt((this.width - 1) / 2) * 2 + 1;
-        startY = 0;
-
-        maze[startY + 1][startX] = 0;
-
-    }
-
     public Maze(int height, int width, Class<? extends MazeGenerator> generatorClass) {
-        Maze newMaze = new Maze(height, width);
+        this.grid = new MazeGrid(height, width);
+        this.height = grid.getHeight();
+        this.width = grid.getWidth();
+        this.startX = grid.getStartX();
+        this.startY = grid.getStartY();
 
-        MazeGenerator mg;
-        try {
-            mg = generatorClass
-                    .getDeclaredConstructor(Maze.class)
-                    .newInstance(newMaze);
-        } catch (Exception e) {
-            throw new RuntimeException("Nie udało sięstworzyć MazeGenerator: " + generatorClass.getSimpleName(), e);
-        }
-
-        mg.createRandomMaze();
-
-        this.maze = newMaze.getMaze();
-        this.height = 2 * height + 1;
-        this.width = 2 * width + 1;
-
-        startX = newMaze.getStartX();
-        startY = newMaze.getStartY();
-        maze[startY][startX] = 0;
+        MazeGeneratorFactory.create(generatorClass, grid).createRandomMaze();
+        grid.setValue(startY, startX, 0);
         chooseEndPoint();
 
-        TileMaze = new Tile[this.height][this.width];
+        tiles = new Tile[this.height][this.width];
         for (int i = 0; i < this.height; i++) {
             for (int j = 0; j < this.width; j++) {
-                TileMaze[i][j] = (maze[i][j] == 0) ? new EmptyTile() : new Wall();
+                tiles[i][j] = (grid.getValue(i, j) == 0) ? new EmptyTile() : new Wall();
             }
         }
 
-        TileMaze[endY][endX] = new EndTile();
+        tiles[endY][endX] = new EndTile();
 
-        Random random = new Random();
-
-        for (int row = 1; row < maze.length-1; row++) {
-            for (int col = (row%2)+1; col < maze[0].length-1; col += 2) {
-                if (TileMaze[row][col] instanceof EmptyTile) {
-                    if (random.nextDouble() < 0.08) { // 10% шанс поставити перешкоду
-                        
-                        // Обираємо випадковий тип перешкоди
-                        Class<? extends Tile> clazz = obstacles.get(random.nextInt(obstacles.size()));
-
-                        try {
-                            Tile obstacle = clazz.getDeclaredConstructor().newInstance(); // створюємо екземпляр
-                            TileMaze[row][col] = obstacle;
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+        for (int row = 1; row < height - 1; row++) {
+            for (int col = (row % 2) + 1; col < width - 1; col += 2) {
+                if (tiles[row][col] instanceof EmptyTile) {
+                    if (random.nextDouble() < management.GameConfig.OBSTACLE_CHANCE) {
+                        Supplier<Tile> obstacleSupplier = obstacles.get(random.nextInt(obstacles.size()));
+                        tiles[row][col] = obstacleSupplier.get();
                     }
                 }
             }
@@ -160,25 +110,29 @@ public class Maze {
         int[] endXArray = new int[(width - 1) / 2];
         int endN = 0;
         for (int i = 1; i < width - 1; i += 2) {
-            if (maze[height - 2][i] == 0) {
+            if (grid.getValue(height - 2, i) == 0) {
                 endXArray[endN++] = i;
             }
         }
 
-        endX = endXArray[(new Random()).nextInt(endN)];
+        if (endN == 0) {
+            throw new IllegalStateException("Maze generation produced no exit");
+        }
+
+        endX = endXArray[random.nextInt(endN)];
         endY = height - 1;
-        maze[endY][endX] = 0;
+        grid.setValue(endY, endX, 0);
     }
 
     public void printMaze() {
         for (int i = 0; i < height; i++) {
             System.out.print("\n");
             for (int j = 0; j < width; j++) {
-                if (maze[i][j] == 0) {
+                if (grid.getValue(i, j) == 0) {
                     System.out.print("  ️");
                 }
 
-                if (maze[i][j] == 1) {
+                if (grid.getValue(i, j) == 1) {
                     System.out.print("█️█");
                 }
             }

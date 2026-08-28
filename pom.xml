@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>22</maven.compiler.release>
         <javafx.version>22.0.1</javafx.version>
-        <exec.mainClass>managment.Main</exec.mainClass>
+        <exec.mainClass>management.Main</exec.mainClass>
     </properties>
 
     <dependencies>

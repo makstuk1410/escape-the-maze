@@ -1,11 +1,11 @@
-package managment;
+package management;
 
 import entities.MazeObjects.Level;
 import entities.MazeObjects.Levels;
 import entities.MazeObjects.Maze;
 import entities.MazeObjects.Player;
 import game.GameTimer;
-import gui.Game.GameScreen;
+import gui.game.GameScreen;
 import gui.mainScreens.ScreenManager;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;

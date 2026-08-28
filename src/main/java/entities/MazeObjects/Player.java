@@ -3,8 +3,8 @@ package entities.MazeObjects;
 public class Player {
 
     private int healthPoints;
-    private int positionX;
-    private int positionY;
+    private double positionX;
+    private double positionY;
     private boolean isJumping = false;
     private double scale = 1.0;
     private int speed;
@@ -64,19 +64,19 @@ public class Player {
         return healthPoints;
     }
 
-    public int getPositionX() {
+    public double getPositionX() {
         return positionX;
     }
 
-    public void setPositionX(int positionX) {
+    public void setPositionX(double positionX) {
         this.positionX = positionX;
     }
 
-    public int getPositionY() {
+    public double getPositionY() {
         return positionY;
     }
 
-    public void setPositionY(int positionY) {
+    public void setPositionY(double positionY) {
         this.positionY = positionY;
     }
 

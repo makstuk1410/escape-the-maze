@@ -1,4 +1,4 @@
-package managment;
+package management;
 
 import javafx.application.Application;
 import javafx.stage.Stage;

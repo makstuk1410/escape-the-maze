@@ -1,7 +1,7 @@
-package gui.Game;
+package gui.game;
 
 import entities.MazeObjects.Player;
-import managment.GameConfig;
+import management.GameConfig;
 
 public class Camera {
 

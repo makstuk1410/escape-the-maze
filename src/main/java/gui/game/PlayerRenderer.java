@@ -1,9 +1,9 @@
-package gui.Game;
+package gui.game;
 
 import entities.MazeObjects.Player;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import managment.GameConfig;
+import management.GameConfig;
 
 public class PlayerRenderer {
     private static final Image PLAYER_IMAGE =

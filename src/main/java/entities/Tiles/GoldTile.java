@@ -1,6 +1,7 @@
 package entities.Tiles;
 
 import game.GameState;
+import management.GameConfig;
 
 public class GoldTile implements Tile {
 
@@ -17,7 +18,7 @@ public class GoldTile implements Tile {
         }
 
         collected = true;
-        gameState.addScore(10);
+		gameState.addScore(GameConfig.GOLD_SCORE);
 	}
 
 	@Override

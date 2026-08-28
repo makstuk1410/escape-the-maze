@@ -1,9 +1,9 @@
-package gui.Game;
+package gui.game;
 
 import entities.Tiles.*;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import managment.GameConfig;
+import management.GameConfig;
 
 public class TileRenderer {
 
