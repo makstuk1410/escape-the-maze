@@ -76,3 +76,42 @@ leaderboard.
 - **FR-33**: The gameplay page renders the maze, player, visible hazards,
   score, health, remaining time, and game status in a browser canvas.
 - **FR-34**: The result screen lets the user start another game or return to the menu.
+
+## Non-Functional Requirements
+
+### Performance
+
+- **NFR-01**: The application should load the initial frontend page within three seconds on a typical broadband connection.
+- **NFR-02**: The backend should create a maze and return a new game session within two seconds for every supported difficulty.
+- **NFR-03**: Under normal conditions, a valid movement command should receive a WebSocket state response within 500 milliseconds.
+- **NFR-04**: The Canvas renderer should target 60 frames per second while drawing the visible maze viewport.
+
+### Security
+
+- **NFR-05**: Passwords must never be stored or logged in plain text; they must be stored using a secure one-way password hash.
+- **NFR-06**: Protected REST endpoints and WebSocket connections must require an authenticated user identity.
+- **NFR-07**: The server must authorize access to a game session by checking that its owner is the authenticated user.
+- **NFR-08**: The browser must not be trusted to calculate or submit health, score, player position, game completion, or leaderboard results.
+- **NFR-09**: Authentication tokens/cookies must be transmitted only over HTTPS in production and protected from client-side JavaScript where possible.
+
+### Reliability and Data Integrity
+
+- **NFR-10**: The server must save a completed game result at most once, even if duplicate completion events or WebSocket commands are received.
+- **NFR-11**: A temporary WebSocket interruption must not change the authoritative game state or reset an active game session.
+- **NFR-12**: The leaderboard must contain only results calculated and saved by the server.
+- **NFR-13**: Invalid REST requests and WebSocket commands must return a safe, understandable error without stopping the application.
+
+### Usability and Compatibility
+
+- **NFR-14**: The application must be usable in current desktop versions of Chrome, Firefox, Edge, and Safari.
+- **NFR-15**: Gameplay must support keyboard controls using WASD and arrow keys.
+- **NFR-16**: The interface must clearly communicate loading, authentication, connection failure, victory, death, and timeout states.
+- **NFR-17**: The game layout must remain usable at a browser viewport width of at least 1024 pixels.
+
+### Maintainability and Testability
+
+- **NFR-18**: Backend domain/gameplay code must not depend on JavaFX, browser, Canvas, or WebSocket framework classes.
+- **NFR-19**: The domain layer must be covered by automated unit tests for movement, tile effects, game completion, and maze generation.
+- **NFR-20**: REST and WebSocket contracts must be documented in this repository before the corresponding frontend integration is complete.
+- **NFR-21**: Database schema changes must be versioned through migrations.
+- **NFR-22**: Application configuration, secrets, and database credentials must be supplied through environment-specific configuration and must not be committed to the repository.
