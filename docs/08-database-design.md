@@ -56,7 +56,7 @@ Stores exactly one durable result for each completed game.
 | `id` | `UUID` | Primary key, not null | Unique result identifier. |
 | `game_id` | `UUID` | Not null, unique | Source `GameSession` identifier. |
 | `user_id` | `UUID` | Not null, foreign key to `users.id` | Owner of the completed game. |
-| `difficulty` | `VARCHAR(32)` | Not null | Chosen difficulty identifier. |
+| `difficulty` | `VARCHAR(32)` | Not null, check `difficulty IN ('EASY', 'NORMAL', 'HARD', 'EXPERT')` | Chosen leaderboard category. |
 | `generator` | `VARCHAR(32)` | Not null | Maze generator identifier. |
 | `score` | `INTEGER` | Not null, check `score >= 0` | Server-calculated final score. |
 | `status` | `VARCHAR(32)` | Not null | `WON`, `LOST`, or `TIMED_OUT`. |
@@ -68,6 +68,8 @@ Rules:
 - `user_id` references `users.id`; one user can own many game results.
 - `game_id` is unique so duplicate completion events cannot create duplicate
   results.
+- `difficulty` must be exactly one of `EASY`, `NORMAL`, `HARD`, or `EXPERT`.
+  Results are ranked only with other results of the same difficulty.
 - Only terminal statuses (`WON`, `LOST`, `TIMED_OUT`) may be saved.
 - The backend, not the browser, writes scores and results.
 
@@ -89,7 +91,7 @@ an account-deactivation strategy rather than cascading deletion of results.
 | Unique index on `users.email` | Prevent duplicate account emails. |
 | Unique index on `game_results.game_id` | Enforce one persisted result per game. |
 | Index on `game_results(user_id, ended_at DESC)` | Retrieve a user's recent completed games. |
-| Index on `game_results(score DESC, ended_at ASC)` | Retrieve leaderboard entries efficiently. |
+| Index on `game_results(difficulty, score DESC, ended_at ASC)` | Retrieve a difficulty-specific leaderboard efficiently. |
 
 ## Migration Policy
 

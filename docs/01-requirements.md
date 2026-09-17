@@ -22,8 +22,8 @@ leaderboard.
 
 **Related use case:** [UC-04 Create a Game](02-use-cases.md#uc-04-create-a-game).
 
-- **FR-05**: An authenticated user can choose a difficulty level before
-  creating a game.
+- **FR-05**: An authenticated user can choose exactly one supported difficulty
+  before creating a game: `EASY`, `NORMAL`, `HARD`, or `EXPERT`.
 - **FR-06**: An authenticated user can choose a supported maze-generation
   algorithm before creating a game.
 - **FR-07**: The application creates a new game session with a unique game
@@ -75,19 +75,25 @@ leaderboard.
   the game session.
 - **FR-29**: The saved result includes game identifier, difficulty, generator,
   score, final status, start time, and completion time.
-- **FR-30**: A user can view a leaderboard of completed game results.
-- **FR-31**: The leaderboard displays verified server-calculated scores, not
+- **FR-30**: A user can view four independent leaderboards for completed game
+  results: `EASY`, `NORMAL`, `HARD`, and `EXPERT`.
+- **FR-31**: A user can select a difficulty leaderboard; a leaderboard shows
+  only results created with that same difficulty and never combines rankings
+  across difficulties.
+- **FR-32**: The leaderboard displays verified server-calculated scores, not
   scores supplied by the browser.
 
 ## User Interface
 
 **Related use cases:** [UC-01 Register an Account](02-use-cases.md#uc-01-register-an-account), [UC-02 Log In](02-use-cases.md#uc-02-log-in), [UC-04 Create a Game](02-use-cases.md#uc-04-create-a-game), [UC-05 Play a Game](02-use-cases.md#uc-05-play-a-game), and [UC-07 View the Leaderboard](02-use-cases.md#uc-07-view-the-leaderboard).
 
-- **FR-32**: The application provides pages for registration, login, menu,
+- **FR-33**: The application provides pages for registration, login, menu,
   difficulty/generator selection, gameplay, game result, and leaderboard.
-- **FR-33**: The gameplay page renders the maze, player, visible hazards,
+- **FR-34**: The leaderboard page provides a visible selector or tabs for
+  `EASY`, `NORMAL`, `HARD`, and `EXPERT`.
+- **FR-35**: The gameplay page renders the maze, player, visible hazards,
   score, health, remaining time, and game status in a browser canvas.
-- **FR-34**: The result screen lets the user start another game or return to the menu.
+- **FR-36**: The result screen lets the user start another game or return to the menu.
 
 ## Non-Functional Requirements
 

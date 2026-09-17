@@ -20,7 +20,7 @@
 | `GET` | `/api/levels` | Yes | Return supported difficulties and maze generators. |
 | `POST` | `/api/games` | Yes | Create a game session owned by the authenticated user. |
 | `GET` | `/api/games/{gameId}` | Yes | Return the authoritative state of the owner's game session. |
-| `GET` | `/api/leaderboard` | No | Return completed, server-verified leaderboard results. |
+| `GET` | `/api/leaderboard?difficulty={difficulty}` | No | Return the completed, server-verified ranking for one difficulty. |
 
 ## Endpoint Responsibilities
 
@@ -42,6 +42,10 @@
 
 ### Leaderboard
 
-- `GET /api/leaderboard` returns persisted game results ordered by the
-  server-calculated score.
+- `GET /api/leaderboard?difficulty={difficulty}` requires one of `EASY`,
+  `NORMAL`, `HARD`, or `EXPERT` and returns only persisted game results for
+  that difficulty, ordered by server-calculated score descending and completion
+  time ascending.
+- The API returns `400 Bad Request` when `difficulty` is missing or is not a
+  supported value. It never returns a combined cross-difficulty ranking.
 - The API does not expose a client-controlled score-submission endpoint.

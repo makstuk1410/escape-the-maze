@@ -50,12 +50,13 @@ error and keeps the user unauthenticated.
 
 **Actor:** Authenticated user
 
-**Preconditions:** The user is authenticated and has selected a difficulty
-and supported maze generator.
+**Preconditions:** The user is authenticated and has selected one of `EASY`,
+`NORMAL`, `HARD`, or `EXPERT`, plus a supported maze generator.
 
 **Main flow:**
 
-1. The user selects a difficulty and maze-generation algorithm.
+1. The user selects one difficulty (`EASY`, `NORMAL`, `HARD`, or `EXPERT`)
+   and a maze-generation algorithm.
 2. The user starts a new game.
 3. The system creates a game session owned by the user.
 4. The system generates a maze, player state, timer, and initial game state.
@@ -117,6 +118,15 @@ final state and the browser shows the result screen.
 **Main flow:**
 
 1. The actor opens the leaderboard page.
-2. The browser requests leaderboard results.
-3. The system returns completed, server-verified game results.
-4. The browser displays usernames, scores, difficulties, and final statuses.
+2. The browser shows the `EASY`, `NORMAL`, `HARD`, and `EXPERT` leaderboard
+   selectors.
+3. The actor selects one difficulty leaderboard.
+4. The browser requests leaderboard results for that difficulty only.
+5. The system returns completed, server-verified game results that were played
+   at the selected difficulty.
+6. The browser displays usernames, scores, and final statuses for that
+   difficulty.
+
+**Alternative flow:** If the selected difficulty has no completed results,
+the system returns an empty ranking and the browser shows an empty-state
+message for that difficulty.
