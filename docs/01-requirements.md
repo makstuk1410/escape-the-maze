@@ -9,6 +9,8 @@ leaderboard.
 
 ## Accounts and Authentication
 
+**Related use cases:** [UC-01 Register an Account](02-use-cases.md#uc-01-register-an-account), [UC-02 Log In](02-use-cases.md#uc-02-log-in), and [UC-03 Log Out](02-use-cases.md#uc-03-log-out).
+
 - **FR-01**: A visitor can register an account with a unique username, email,
   and password.
 - **FR-02**: A registered user can log in and log out.
@@ -17,6 +19,8 @@ leaderboard.
   leaderboard results.
 
 ## Game Creation
+
+**Related use case:** [UC-04 Create a Game](02-use-cases.md#uc-04-create-a-game).
 
 - **FR-05**: An authenticated user can choose a difficulty level before
   creating a game.
@@ -28,6 +32,8 @@ leaderboard.
 - **FR-09**: A user can retrieve the current state of their own active game.
 
 ## Gameplay
+
+**Related use case:** [UC-05 Play a Game](02-use-cases.md#uc-05-play-a-game).
 
 - **FR-10**: The player can send movement commands in the four cardinal
   directions: up, down, left, and right.
@@ -49,6 +55,8 @@ leaderboard.
 
 ## Real-Time Communication
 
+**Related use cases:** [UC-05 Play a Game](02-use-cases.md#uc-05-play-a-game) and [UC-06 Resume an Active Game](02-use-cases.md#uc-06-resume-an-active-game).
+
 - **FR-22**: The browser connects to the created game through a WebSocket.
 - **FR-23**: The server sends the initial and updated authoritative game state
   to the connected browser.
@@ -60,6 +68,8 @@ leaderboard.
 
 ## Results and Leaderboard
 
+**Related use cases:** [UC-05 Play a Game](02-use-cases.md#uc-05-play-a-game) and [UC-07 View the Leaderboard](02-use-cases.md#uc-07-view-the-leaderboard).
+
 - **FR-27**: The server saves a completed game result exactly once.
 - **FR-28**: A saved result is associated with the authenticated user who owns
   the game session.
@@ -70,6 +80,8 @@ leaderboard.
   scores supplied by the browser.
 
 ## User Interface
+
+**Related use cases:** [UC-01 Register an Account](02-use-cases.md#uc-01-register-an-account), [UC-02 Log In](02-use-cases.md#uc-02-log-in), [UC-04 Create a Game](02-use-cases.md#uc-04-create-a-game), [UC-05 Play a Game](02-use-cases.md#uc-05-play-a-game), and [UC-07 View the Leaderboard](02-use-cases.md#uc-07-view-the-leaderboard).
 
 - **FR-32**: The application provides pages for registration, login, menu,
   difficulty/generator selection, gameplay, game result, and leaderboard.
