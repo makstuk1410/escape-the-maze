@@ -79,6 +79,48 @@ class GameSessionTest {
         assertThat(session.getStateVersion()).isEqualTo(2);
     }
 
+    @Test
+    void appliesSpikeDamageOnlyAfterTheCooldownExpires() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.HARD,
+                spikeMaze(),
+                new PlayerState(1, 1),
+                startedAt,
+                startedAt.plusSeconds(300));
+
+        assertThat(session.applySpikeDamageAtPlayer(startedAt)).isTrue();
+        assertThat(session.getPlayer().health()).isEqualTo(80);
+        assertThat(session.getDamageCooldownUntil()).isEqualTo(startedAt.plusSeconds(1));
+        assertThat(session.applySpikeDamageAtPlayer(startedAt.plusMillis(500))).isFalse();
+        assertThat(session.getPlayer().health()).isEqualTo(80);
+        assertThat(session.applySpikeDamageAtPlayer(startedAt.plusSeconds(1))).isTrue();
+        assertThat(session.getPlayer().health()).isEqualTo(60);
+    }
+
+    @Test
+    void marksTheSessionLostWhenSpikeDamageDepletesHealth() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.HARD,
+                spikeMaze(),
+                new PlayerState(1, 1),
+                startedAt,
+                startedAt.plusSeconds(300));
+
+        for (int damageNumber = 0; damageNumber < 5; damageNumber++) {
+            assertThat(session.applySpikeDamageAtPlayer(startedAt.plusSeconds(damageNumber))).isTrue();
+        }
+
+        assertThat(session.getPlayer().health()).isZero();
+        assertThat(session.getStatus()).isEqualTo(GameStatus.LOST);
+        assertThat(session.applySpikeDamageAtPlayer(startedAt.plusSeconds(5))).isFalse();
+    }
+
     private Maze maze() {
         TileType[][] tiles = {
             {TileType.WALL, TileType.WALL, TileType.WALL},
@@ -105,5 +147,14 @@ class GameSessionTest {
             {TileType.WALL, TileType.EXIT, TileType.WALL}
         };
         return new Maze(tiles, new Position(1, 1), new Position(1, 3), GeneratorType.PRIM);
+    }
+
+    private Maze spikeMaze() {
+        TileType[][] tiles = {
+            {TileType.WALL, TileType.WALL, TileType.WALL},
+            {TileType.WALL, TileType.SPIKES, TileType.WALL},
+            {TileType.WALL, TileType.EXIT, TileType.WALL}
+        };
+        return new Maze(tiles, new Position(1, 1), new Position(1, 2), GeneratorType.KRUSKAL);
     }
 }

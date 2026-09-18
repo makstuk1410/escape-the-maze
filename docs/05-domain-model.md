@@ -103,6 +103,7 @@ effect durations remain configurable game rules rather than frontend values.
 | `endsAt` | instant | Authoritative time limit. |
 | `frozenUntil` | instant or null | End time of an active freeze effect. |
 | `fogUntil` | instant or null | End time of an active fog effect. |
+| `damageCooldownUntil` | instant or null | Earliest time at which spikes can damage the player again. |
 | `stateVersion` | long | Monotonically increasing version for client reconciliation. |
 
 Only a `RUNNING` session accepts movement commands. A terminal session has

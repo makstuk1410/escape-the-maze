@@ -24,6 +24,7 @@ public class GameSession {
     private final Instant endsAt;
     private Instant frozenUntil;
     private Instant fogUntil;
+    private Instant damageCooldownUntil;
     private long stateVersion;
 
     public GameSession(
@@ -96,6 +97,10 @@ public class GameSession {
         return fogUntil;
     }
 
+    public Instant getDamageCooldownUntil() {
+        return damageCooldownUntil;
+    }
+
     public long getStateVersion() {
         return stateVersion;
     }
@@ -149,6 +154,33 @@ public class GameSession {
         score += GameRules.GOLD_SCORE;
         incrementStateVersion();
         return true;
+    }
+
+    /**
+     * Applies spike damage at the current position, respecting the damage cooldown.
+     *
+     * @return {@code true} when damage was applied; otherwise {@code false}
+     */
+    public boolean applySpikeDamageAtPlayer(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (!acceptsMovement()
+                || maze.tileAt(player.x(), player.y()) != TileType.SPIKES
+                || (damageCooldownUntil != null && now.isBefore(damageCooldownUntil))) {
+            return false;
+        }
+
+        int remainingHealth = Math.max(0, player.health() - GameRules.SPIKES_DAMAGE);
+        player = player.withHealth(remainingHealth);
+        damageCooldownUntil = now.plus(GameRules.DAMAGE_COOLDOWN);
+        if (remainingHealth == 0) {
+            status = GameStatus.LOST;
+        }
+        incrementStateVersion();
+        return true;
+    }
+
+    public boolean applySpikeDamageAtPlayer() {
+        return applySpikeDamageAtPlayer(Instant.now());
     }
 
     public void updateStatus(GameStatus status) {
