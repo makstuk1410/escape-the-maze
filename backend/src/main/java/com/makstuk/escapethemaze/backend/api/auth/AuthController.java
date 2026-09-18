@@ -7,7 +7,10 @@ import com.makstuk.escapethemaze.backend.persistence.user.User;
 import com.makstuk.escapethemaze.backend.security.jwt.AuthenticatedUser;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.time.Duration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,5 +54,19 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<CurrentUserResponse> me(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         return ResponseEntity.ok(currentUserService.getCurrentUser(authenticatedUser.id()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        ResponseCookie expiredAccessToken = ResponseCookie.from("access_token", "")
+                .path("/")
+                .httpOnly(true)
+                .sameSite("Strict")
+                .maxAge(Duration.ZERO)
+                .build();
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, expiredAccessToken.toString())
+                .build();
     }
 }
