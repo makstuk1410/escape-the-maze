@@ -129,6 +129,7 @@ public class GameSession {
 
     public void updatePlayer(PlayerState player) {
         this.player = Objects.requireNonNull(player, "player must not be null");
+        transitionToLostIfHealthDepleted();
         incrementStateVersion();
     }
 
@@ -172,9 +173,7 @@ public class GameSession {
         int remainingHealth = Math.max(0, player.health() - GameRules.SPIKES_DAMAGE);
         player = player.withHealth(remainingHealth);
         damageCooldownUntil = now.plus(GameRules.DAMAGE_COOLDOWN);
-        if (remainingHealth == 0) {
-            status = GameStatus.LOST;
-        }
+        transitionToLostIfHealthDepleted();
         incrementStateVersion();
         return true;
     }
@@ -276,5 +275,11 @@ public class GameSession {
 
     private void incrementStateVersion() {
         stateVersion++;
+    }
+
+    private void transitionToLostIfHealthDepleted() {
+        if (player.health() == 0 && (status == GameStatus.RUNNING || status == GameStatus.PAUSED)) {
+            status = GameStatus.LOST;
+        }
     }
 }

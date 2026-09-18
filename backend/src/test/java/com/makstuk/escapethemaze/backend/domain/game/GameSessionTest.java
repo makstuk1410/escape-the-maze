@@ -186,6 +186,25 @@ class GameSessionTest {
         assertThat(session.getStateVersion()).isEqualTo(2);
     }
 
+    @Test
+    void marksTheSessionLostWheneverPlayerHealthReachesZero() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.NORMAL,
+                maze(),
+                new PlayerState(1, 1),
+                startedAt,
+                startedAt.plusSeconds(300));
+
+        session.updatePlayer(new PlayerState(1, 1, 0));
+
+        assertThat(session.getPlayer().health()).isZero();
+        assertThat(session.getStatus()).isEqualTo(GameStatus.LOST);
+        assertThat(session.acceptsMovement()).isFalse();
+    }
+
     private Maze maze() {
         TileType[][] tiles = {
             {TileType.WALL, TileType.WALL, TileType.WALL},
