@@ -51,12 +51,12 @@ error and keeps the user unauthenticated.
 **Actor:** Authenticated user
 
 **Preconditions:** The user is authenticated and has selected one of `EASY`,
-`NORMAL`, `HARD`, or `EXPERT`, plus a supported maze generator.
+`NORMAL`, `HARD`, or `EXPERT`.
 
 **Main flow:**
 
-1. The user selects one difficulty (`EASY`, `NORMAL`, `HARD`, or `EXPERT`)
-   and a maze-generation algorithm.
+1. The user selects one difficulty (`EASY`, `NORMAL`, `HARD`, or `EXPERT`).
+   The system assigns its fixed maze-generation algorithm.
 2. The user starts a new game.
 3. The system creates a game session owned by the user.
 4. The system generates a maze, player state, timer, and initial game state.

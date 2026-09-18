@@ -24,8 +24,9 @@ leaderboard.
 
 - **FR-05**: An authenticated user can choose exactly one supported difficulty
   before creating a game: `EASY`, `NORMAL`, `HARD`, or `EXPERT`.
-- **FR-06**: An authenticated user can choose a supported maze-generation
-  algorithm before creating a game.
+- **FR-06**: The backend assigns a fixed maze-generation algorithm for the
+  selected difficulty: `EASY` uses DFS, `NORMAL` uses Prim, and `HARD` and
+  `EXPERT` use Kruskal. This keeps each difficulty leaderboard comparable.
 - **FR-07**: The application creates a new game session with a unique game
   identifier, generated maze, player, score, health, timer, and status.
 - **FR-08**: A game session belongs to the user who created it.

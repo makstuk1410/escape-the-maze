@@ -34,8 +34,8 @@
 
 ### Game Setup and Recovery
 
-- `GET /api/levels` provides values the browser may offer for difficulty and
-  generator selection.
+- `GET /api/levels` provides supported difficulties and their fixed maze
+  generators; the browser does not choose a generator independently.
 - `POST /api/games` creates the maze, player, timer, and active `GameSession`.
 - `GET /api/games/{gameId}` is used to restore an active game after refresh or
   WebSocket reconnection. The server must reject requests from non-owners.
