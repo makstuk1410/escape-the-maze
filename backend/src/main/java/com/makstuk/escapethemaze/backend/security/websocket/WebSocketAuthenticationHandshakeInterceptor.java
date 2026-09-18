@@ -1,9 +1,11 @@
 package com.makstuk.escapethemaze.backend.security.websocket;
 
+import com.makstuk.escapethemaze.backend.application.game.GameApplicationService;
 import com.makstuk.escapethemaze.backend.security.jwt.AuthenticatedUser;
 import com.makstuk.escapethemaze.backend.security.jwt.JwtTokenService;
 import java.net.URI;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.UriTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -21,10 +25,15 @@ public class WebSocketAuthenticationHandshakeInterceptor implements HandshakeInt
 
     public static final String AUTHENTICATED_USER_ATTRIBUTE = "authenticatedUser";
 
-    private final JwtTokenService jwtTokenService;
+    private static final UriTemplate GAME_ENDPOINT = new UriTemplate("/ws/games/{gameId}");
 
-    public WebSocketAuthenticationHandshakeInterceptor(JwtTokenService jwtTokenService) {
+    private final JwtTokenService jwtTokenService;
+    private final GameApplicationService gameApplicationService;
+
+    public WebSocketAuthenticationHandshakeInterceptor(
+            JwtTokenService jwtTokenService, GameApplicationService gameApplicationService) {
         this.jwtTokenService = jwtTokenService;
+        this.gameApplicationService = gameApplicationService;
     }
 
     @Override
@@ -40,7 +49,7 @@ public class WebSocketAuthenticationHandshakeInterceptor implements HandshakeInt
         }
 
         return jwtTokenService.parse(token)
-                .map(user -> storeAuthenticatedUser(user, attributes))
+                .map(user -> verifyGameOwnership(request.getURI(), user, response, attributes))
                 .orElseGet(() -> {
                     response.setStatusCode(HttpStatus.UNAUTHORIZED);
                     return false;
@@ -65,5 +74,20 @@ public class WebSocketAuthenticationHandshakeInterceptor implements HandshakeInt
     private boolean storeAuthenticatedUser(AuthenticatedUser user, Map<String, Object> attributes) {
         attributes.put(AUTHENTICATED_USER_ATTRIBUTE, user);
         return true;
+    }
+
+    private boolean verifyGameOwnership(
+            URI uri, AuthenticatedUser user, ServerHttpResponse response, Map<String, Object> attributes) {
+        try {
+            String gameId = GAME_ENDPOINT.match(uri.getPath()).get("gameId");
+            gameApplicationService.getGame(UUID.fromString(gameId), user.id());
+            return storeAuthenticatedUser(user, attributes);
+        } catch (IllegalArgumentException exception) {
+            response.setStatusCode(HttpStatus.NOT_FOUND);
+            return false;
+        } catch (ResponseStatusException exception) {
+            response.setStatusCode(exception.getStatusCode());
+            return false;
+        }
     }
 }

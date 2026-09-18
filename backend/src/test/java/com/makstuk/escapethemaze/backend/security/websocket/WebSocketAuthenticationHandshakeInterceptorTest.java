@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.makstuk.escapethemaze.backend.application.game.GameApplicationService;
 import com.makstuk.escapethemaze.backend.security.jwt.AuthenticatedUser;
 import com.makstuk.escapethemaze.backend.security.jwt.JwtTokenService;
 import java.net.URI;
@@ -16,34 +17,39 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.server.ResponseStatusException;
 
 class WebSocketAuthenticationHandshakeInterceptorTest {
 
     @Test
     void acceptsAValidTokenAndStoresTheVerifiedIdentity() {
         JwtTokenService jwtTokenService = mock(JwtTokenService.class);
+        GameApplicationService gameApplicationService = mock(GameApplicationService.class);
         AuthenticatedUser user = new AuthenticatedUser(UUID.randomUUID(), "maze_tester");
         when(jwtTokenService.parse("valid-token")).thenReturn(Optional.of(user));
-        ServerHttpRequest request = requestWithUri("http://localhost/ws/games/game-id?access_token=valid-token");
+        UUID gameId = UUID.randomUUID();
+        ServerHttpRequest request = requestWithUri("http://localhost/ws/games/" + gameId + "?access_token=valid-token");
         ServerHttpResponse response = mock(ServerHttpResponse.class);
         var attributes = new HashMap<String, Object>();
 
-        boolean accepted = new WebSocketAuthenticationHandshakeInterceptor(jwtTokenService)
+        boolean accepted = new WebSocketAuthenticationHandshakeInterceptor(jwtTokenService, gameApplicationService)
                 .beforeHandshake(request, response, mock(WebSocketHandler.class), attributes);
 
         assertThat(accepted).isTrue();
         assertThat(attributes).containsEntry(
                 WebSocketAuthenticationHandshakeInterceptor.AUTHENTICATED_USER_ATTRIBUTE, user);
+        verify(gameApplicationService).getGame(gameId, user.id());
     }
 
     @Test
     void rejectsMissingOrInvalidTokensBeforeOpeningTheSocket() {
         JwtTokenService jwtTokenService = mock(JwtTokenService.class);
+        GameApplicationService gameApplicationService = mock(GameApplicationService.class);
         ServerHttpResponse missingTokenResponse = mock(ServerHttpResponse.class);
         ServerHttpResponse invalidTokenResponse = mock(ServerHttpResponse.class);
         when(jwtTokenService.parse("invalid-token")).thenReturn(Optional.empty());
         WebSocketAuthenticationHandshakeInterceptor interceptor =
-                new WebSocketAuthenticationHandshakeInterceptor(jwtTokenService);
+                new WebSocketAuthenticationHandshakeInterceptor(jwtTokenService, gameApplicationService);
 
         assertThat(interceptor.beforeHandshake(
                         requestWithUri("http://localhost/ws/games/game-id"),
@@ -60,6 +66,28 @@ class WebSocketAuthenticationHandshakeInterceptorTest {
 
         verify(missingTokenResponse).setStatusCode(HttpStatus.UNAUTHORIZED);
         verify(invalidTokenResponse).setStatusCode(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void rejectsAnAuthenticatedUserWhoDoesNotOwnTheGame() {
+        JwtTokenService jwtTokenService = mock(JwtTokenService.class);
+        GameApplicationService gameApplicationService = mock(GameApplicationService.class);
+        AuthenticatedUser user = new AuthenticatedUser(UUID.randomUUID(), "maze_tester");
+        UUID gameId = UUID.randomUUID();
+        when(jwtTokenService.parse("valid-token")).thenReturn(Optional.of(user));
+        when(gameApplicationService.getGame(gameId, user.id()))
+                .thenThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this game session"));
+        ServerHttpResponse response = mock(ServerHttpResponse.class);
+
+        boolean accepted = new WebSocketAuthenticationHandshakeInterceptor(jwtTokenService, gameApplicationService)
+                .beforeHandshake(
+                        requestWithUri("http://localhost/ws/games/" + gameId + "?access_token=valid-token"),
+                        response,
+                        mock(WebSocketHandler.class),
+                        new HashMap<>());
+
+        assertThat(accepted).isFalse();
+        verify(response).setStatusCode(HttpStatus.FORBIDDEN);
     }
 
     private ServerHttpRequest requestWithUri(String value) {

@@ -3,6 +3,7 @@ package com.makstuk.escapethemaze.backend.configuration;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.makstuk.escapethemaze.backend.application.game.GameApplicationService;
 import com.makstuk.escapethemaze.backend.security.jwt.JwtTokenService;
 import com.makstuk.escapethemaze.backend.security.websocket.WebSocketAuthenticationHandshakeInterceptor;
 import com.makstuk.escapethemaze.backend.websocket.GameWebSocketHandler;
@@ -16,7 +17,9 @@ class WebSocketConfigurationTest {
     void registersTheNativeGameEndpointForTheFrontendOrigin() {
         GameWebSocketHandler handler = new GameWebSocketHandler();
         WebSocketAuthenticationHandshakeInterceptor interceptor =
-                new WebSocketAuthenticationHandshakeInterceptor(org.mockito.Mockito.mock(JwtTokenService.class));
+                new WebSocketAuthenticationHandshakeInterceptor(
+                        org.mockito.Mockito.mock(JwtTokenService.class),
+                        org.mockito.Mockito.mock(GameApplicationService.class));
         WebSocketHandlerRegistry registry = org.mockito.Mockito.mock(WebSocketHandlerRegistry.class);
         WebSocketHandlerRegistration registration = org.mockito.Mockito.mock(WebSocketHandlerRegistration.class);
         when(registry.addHandler(handler, "/ws/games/{gameId}")).thenReturn(registration);

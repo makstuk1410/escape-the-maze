@@ -9,7 +9,8 @@
   protected REST requests and rejects missing, invalid, or expired tokens with
   `401 Unauthorized` before opening the socket.
 - The server verifies that the authenticated user owns `{gameId}` before
-  accepting gameplay commands.
+  opening the socket. An unknown game returns `404`; another user's game
+  returns `403`.
 - All messages are JSON objects containing a `type` field.
 
 ## Client-to-Server Messages
