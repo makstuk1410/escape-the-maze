@@ -213,6 +213,36 @@ public class GameSession {
         return frozenUntil != null && now.isBefore(frozenUntil);
     }
 
+    /**
+     * Sets or extends the fog effect when the player is standing on fog.
+     *
+     * @return {@code true} when the fog deadline was extended; otherwise {@code false}
+     */
+    public boolean applyFogAtPlayer(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (!acceptsMovement() || maze.tileAt(player.x(), player.y()) != TileType.FOG) {
+            return false;
+        }
+
+        Instant proposedFogUntil = now.plus(GameRules.FOG_DURATION);
+        if (fogUntil != null && !fogUntil.isBefore(proposedFogUntil)) {
+            return false;
+        }
+
+        fogUntil = proposedFogUntil;
+        incrementStateVersion();
+        return true;
+    }
+
+    public boolean applyFogAtPlayer() {
+        return applyFogAtPlayer(Instant.now());
+    }
+
+    public boolean isFogActiveAt(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        return fogUntil != null && now.isBefore(fogUntil);
+    }
+
     public void updateStatus(GameStatus status) {
         this.status = Objects.requireNonNull(status, "status must not be null");
         incrementStateVersion();

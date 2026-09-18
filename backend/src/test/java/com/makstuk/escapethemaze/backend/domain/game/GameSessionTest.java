@@ -142,6 +142,27 @@ class GameSessionTest {
         assertThat(session.isFrozenAt(startedAt.plusSeconds(4))).isFalse();
     }
 
+    @Test
+    void setsAndExtendsTheFogDeadline() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.EXPERT,
+                fogMaze(),
+                new PlayerState(1, 1),
+                startedAt,
+                startedAt.plusSeconds(300));
+
+        assertThat(session.applyFogAtPlayer(startedAt)).isTrue();
+        assertThat(session.getFogUntil()).isEqualTo(startedAt.plusSeconds(4));
+        assertThat(session.isFogActiveAt(startedAt.plusSeconds(3))).isTrue();
+
+        assertThat(session.applyFogAtPlayer(startedAt.plusSeconds(2))).isTrue();
+        assertThat(session.getFogUntil()).isEqualTo(startedAt.plusSeconds(6));
+        assertThat(session.isFogActiveAt(startedAt.plusSeconds(6))).isFalse();
+    }
+
     private Maze maze() {
         TileType[][] tiles = {
             {TileType.WALL, TileType.WALL, TileType.WALL},
@@ -186,5 +207,14 @@ class GameSessionTest {
             {TileType.WALL, TileType.EXIT, TileType.WALL}
         };
         return new Maze(tiles, new Position(1, 1), new Position(1, 2), GeneratorType.BINARY_TREE);
+    }
+
+    private Maze fogMaze() {
+        TileType[][] tiles = {
+            {TileType.WALL, TileType.WALL, TileType.WALL},
+            {TileType.WALL, TileType.FOG, TileType.WALL},
+            {TileType.WALL, TileType.EXIT, TileType.WALL}
+        };
+        return new Maze(tiles, new Position(1, 1), new Position(1, 2), GeneratorType.PRIM);
     }
 }

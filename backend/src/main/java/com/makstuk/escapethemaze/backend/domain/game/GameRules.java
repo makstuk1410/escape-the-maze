@@ -11,6 +11,7 @@ public final class GameRules {
     public static final int SPIKES_DAMAGE = 20;
     public static final Duration DAMAGE_COOLDOWN = Duration.ofSeconds(1);
     public static final Duration FREEZE_DURATION = Duration.ofSeconds(3);
+    public static final Duration FOG_DURATION = Duration.ofSeconds(4);
 
     private GameRules() {
     }
