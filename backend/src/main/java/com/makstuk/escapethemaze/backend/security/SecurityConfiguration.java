@@ -21,7 +21,7 @@ public class SecurityConfiguration {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/health", "/api/auth/register", "/actuator/health/**").permitAll()
+                        .requestMatchers("/api/health", "/api/auth/register", "/api/auth/login", "/actuator/health/**").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .build();
