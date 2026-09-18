@@ -3,9 +3,13 @@ package com.makstuk.escapethemaze.backend.websocket;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.makstuk.escapethemaze.backend.application.game.GameApplicationService;
+import com.makstuk.escapethemaze.backend.domain.game.GameSession;
+import com.makstuk.escapethemaze.backend.domain.game.GameStatus;
 import com.makstuk.escapethemaze.backend.security.jwt.AuthenticatedUser;
 import com.makstuk.escapethemaze.backend.security.websocket.WebSocketAuthenticationHandshakeInterceptor;
 import com.makstuk.escapethemaze.backend.websocket.protocol.MoveCommand;
+import com.makstuk.escapethemaze.backend.websocket.protocol.GameFinishedMessage;
+import java.io.IOException;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
@@ -27,7 +31,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler implements GameCo
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         MoveCommand command = deserializeMoveCommand(message.getPayload());
         if (command == null || !isValid(command)) {
             return;
@@ -41,7 +45,10 @@ public class GameWebSocketHandler extends TextWebSocketHandler implements GameCo
             return;
         }
 
-        gameApplicationService.move(gameId, user.id(), command.direction());
+        GameSession updatedSession = gameApplicationService.move(gameId, user.id(), command.direction());
+        if (updatedSession != null && isTerminal(updatedSession.getStatus())) {
+            sendGameFinished(session, updatedSession);
+        }
     }
 
     private MoveCommand deserializeMoveCommand(String payload) {
@@ -54,5 +61,14 @@ public class GameWebSocketHandler extends TextWebSocketHandler implements GameCo
 
     private boolean isValid(MoveCommand command) {
         return "MOVE".equals(command.type()) && command.commandId() != null && command.direction() != null;
+    }
+
+    private boolean isTerminal(GameStatus status) {
+        return status == GameStatus.WON || status == GameStatus.LOST || status == GameStatus.TIMED_OUT;
+    }
+
+    private void sendGameFinished(WebSocketSession session, GameSession gameSession) throws IOException {
+        String payload = objectMapper.writeValueAsString(GameFinishedMessage.from(gameSession));
+        session.sendMessage(new TextMessage(payload));
     }
 }
