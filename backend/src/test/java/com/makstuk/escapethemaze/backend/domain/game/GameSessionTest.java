@@ -205,6 +205,39 @@ class GameSessionTest {
         assertThat(session.acceptsMovement()).isFalse();
     }
 
+    @Test
+    void timesOutAtTheAuthoritativeDeadlineWithoutOverwritingTerminalStates() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        Instant endsAt = startedAt.plusSeconds(300);
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.NORMAL,
+                maze(),
+                new PlayerState(1, 1),
+                startedAt,
+                endsAt);
+
+        assertThat(session.timeoutIfExpired(endsAt.minusNanos(1))).isFalse();
+        assertThat(session.timeoutIfExpired(endsAt)).isTrue();
+        assertThat(session.getStatus()).isEqualTo(GameStatus.TIMED_OUT);
+        assertThat(session.getStateVersion()).isEqualTo(1);
+        assertThat(session.timeoutIfExpired(endsAt.plusSeconds(1))).isFalse();
+
+        GameSession wonSession = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.NORMAL,
+                maze(),
+                new PlayerState(1, 1),
+                startedAt,
+                endsAt);
+        wonSession.updateStatus(GameStatus.WON);
+
+        assertThat(wonSession.timeoutIfExpired(endsAt)).isFalse();
+        assertThat(wonSession.getStatus()).isEqualTo(GameStatus.WON);
+    }
+
     private Maze maze() {
         TileType[][] tiles = {
             {TileType.WALL, TileType.WALL, TileType.WALL},

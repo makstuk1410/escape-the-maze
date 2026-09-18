@@ -258,6 +258,26 @@ public class GameSession {
         return true;
     }
 
+    /**
+     * Finishes a running or paused session when its authoritative deadline is reached.
+     *
+     * @return {@code true} when the session changed to {@link GameStatus#TIMED_OUT}
+     */
+    public boolean timeoutIfExpired(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (now.isBefore(endsAt) || (status != GameStatus.RUNNING && status != GameStatus.PAUSED)) {
+            return false;
+        }
+
+        status = GameStatus.TIMED_OUT;
+        incrementStateVersion();
+        return true;
+    }
+
+    public boolean timeoutIfExpired() {
+        return timeoutIfExpired(Instant.now());
+    }
+
     public void updateStatus(GameStatus status) {
         this.status = Objects.requireNonNull(status, "status must not be null");
         incrementStateVersion();
