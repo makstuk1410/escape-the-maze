@@ -3,9 +3,11 @@
 ## Connection
 
 - Endpoint: `/ws/games/{gameId}`
+- Browser connection URL: `/ws/games/{gameId}?access_token={jwt}`
 - The browser connects after `POST /api/games` returns a game identifier.
-- The connection requires the same authenticated user session as protected REST
-  requests.
+- The handshake validates `access_token` using the same JWT verification as
+  protected REST requests and rejects missing, invalid, or expired tokens with
+  `401 Unauthorized` before opening the socket.
 - The server verifies that the authenticated user owns `{gameId}` before
   accepting gameplay commands.
 - All messages are JSON objects containing a `type` field.
