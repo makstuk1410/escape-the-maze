@@ -89,6 +89,18 @@ class GameServiceTest {
     }
 
     @Test
+    void returnsOnlyTheOwnersGameSession() {
+        GameService gameService = gameService();
+        UUID ownerUserId = UUID.randomUUID();
+        var session = gameService.createGame(ownerUserId, Difficulty.EASY);
+
+        assertThat(gameService.getGame(session.getId(), ownerUserId)).isSameAs(session);
+        assertThatThrownBy(() -> gameService.getGame(session.getId(), UUID.randomUUID()))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("do not own");
+    }
+
+    @Test
     void appliesSpikeDamageAfterMovingOntoSpikes() {
         GameService gameService = gameService();
         UUID ownerUserId = UUID.randomUUID();

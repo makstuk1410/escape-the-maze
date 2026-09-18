@@ -74,13 +74,7 @@ public class GameService implements GameApplicationService {
         Objects.requireNonNull(ownerUserId, "ownerUserId must not be null");
         Objects.requireNonNull(direction, "direction must not be null");
 
-        GameSession session = sessions.get(gameId);
-        if (session == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game session was not found");
-        }
-        if (!session.getOwnerUserId().equals(ownerUserId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this game session");
-        }
+        GameSession session = getGame(gameId, ownerUserId);
 
         synchronized (session) {
             Instant now = clock.instant();
@@ -102,6 +96,21 @@ public class GameService implements GameApplicationService {
     @Override
     public Optional<GameSession> findGame(UUID gameId) {
         return Optional.ofNullable(sessions.get(gameId));
+    }
+
+    @Override
+    public GameSession getGame(UUID gameId, UUID ownerUserId) {
+        Objects.requireNonNull(gameId, "gameId must not be null");
+        Objects.requireNonNull(ownerUserId, "ownerUserId must not be null");
+
+        GameSession session = sessions.get(gameId);
+        if (session == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game session was not found");
+        }
+        if (!session.getOwnerUserId().equals(ownerUserId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this game session");
+        }
+        return session;
     }
 
     private void applyTileEffect(GameSession session, Instant now) {

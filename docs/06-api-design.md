@@ -49,7 +49,9 @@
   `height`, the complete `tiles` grid, `player` coordinates and health, `score`,
   `status`, `startedAt`, `endsAt`, and `stateVersion`.
 - `GET /api/games/{gameId}` is used to restore an active game after refresh or
-  WebSocket reconnection. The server must reject requests from non-owners.
+  WebSocket reconnection. It returns the same authoritative state shape as
+  `POST /api/games`; the server returns `404` for an unknown ID and rejects
+  requests from non-owners with `403`.
 
 ### Leaderboard
 

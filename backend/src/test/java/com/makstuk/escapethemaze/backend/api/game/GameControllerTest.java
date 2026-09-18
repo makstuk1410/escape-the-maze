@@ -1,13 +1,10 @@
 package com.makstuk.escapethemaze.backend.api.game;
 
-import static org.mockito.ArgumentMatchers.eq;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import com.makstuk.escapethemaze.backend.application.game.GameApplicationService;
 import com.makstuk.escapethemaze.backend.domain.game.Difficulty;
@@ -79,6 +76,19 @@ class GameControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void returnsTheOwnersExistingGameState() {
+        GameSession session = session();
+        when(gameApplicationService.getGame(GAME_ID, USER_ID)).thenReturn(session);
+
+        var response = gameController.getGame(GAME_ID, new AuthenticatedUser(USER_ID, "maze_tester"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().gameId()).isEqualTo(GAME_ID);
+        assertThat(response.getBody().tiles()[2][1]).isEqualTo(TileType.EXIT);
+        verify(gameApplicationService).getGame(GAME_ID, USER_ID);
     }
 
     private GameSession session() {

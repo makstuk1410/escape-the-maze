@@ -5,8 +5,11 @@ import com.makstuk.escapethemaze.backend.domain.game.GameSession;
 import com.makstuk.escapethemaze.backend.security.jwt.AuthenticatedUser;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,5 +34,13 @@ public class GameController {
         return ResponseEntity
                 .created(URI.create("/api/games/" + session.getId()))
                 .body(GameStateResponse.from(session));
+    }
+
+    @GetMapping("/{gameId}")
+    public ResponseEntity<GameStateResponse> getGame(
+            @PathVariable UUID gameId,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        GameSession session = gameApplicationService.getGame(gameId, authenticatedUser.id());
+        return ResponseEntity.ok(GameStateResponse.from(session));
     }
 }
