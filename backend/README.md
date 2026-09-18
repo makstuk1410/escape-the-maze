@@ -4,21 +4,23 @@ This directory contains the Spring Boot backend being introduced alongside the
 legacy JavaFX application. The JavaFX project at the repository root remains
 unchanged while domain logic is migrated incrementally.
 
-## Run locally
+## Run the complete local stack
 
-1. Start PostgreSQL:
+From this directory, run:
 
-   ```powershell
-   docker compose up -d
-   ```
+```powershell
+docker compose up --build
+```
 
-2. Start the backend:
+This starts PostgreSQL, the Spring Boot backend, and the compiled frontend.
+Open `http://localhost:5173` in a browser. The frontend proxies `/api` and
+`/ws` requests to the backend inside the Docker network.
 
-   ```powershell
-   mvn spring-boot:run
-   ```
+## Run services separately for development
 
-The health endpoint is available at `GET /api/health`.
+Start PostgreSQL with `docker compose up -d postgres`, run the backend with
+`mvn spring-boot:run`, then run the frontend from `../frontend` with
+`npm run dev`. The health endpoint is available at `GET /api/health`.
 
 ## Configuration
 
