@@ -1,5 +1,6 @@
 package com.makstuk.escapethemaze.backend.domain.maze;
 
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -14,10 +15,15 @@ public abstract class MazeGenerator {
         {0, 2},
         {-2, 0}
     };
-    protected final Random random = new Random();
+    protected final Random random;
 
     protected MazeGenerator(MazeGrid maze) {
+        this(maze, new Random());
+    }
+
+    protected MazeGenerator(MazeGrid maze, Random random) {
         this.maze = maze;
+        this.random = Objects.requireNonNull(random, "random must not be null");
     }
 
     protected void fillMaze() {

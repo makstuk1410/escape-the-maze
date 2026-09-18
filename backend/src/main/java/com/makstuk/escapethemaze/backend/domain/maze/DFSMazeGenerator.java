@@ -4,11 +4,16 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Random;
 
 public class DFSMazeGenerator extends MazeGenerator {
 
     public DFSMazeGenerator(MazeGrid maze) {
         super(maze);
+    }
+
+    public DFSMazeGenerator(MazeGrid maze, Random random) {
+        super(maze, random);
     }
 
     @Override

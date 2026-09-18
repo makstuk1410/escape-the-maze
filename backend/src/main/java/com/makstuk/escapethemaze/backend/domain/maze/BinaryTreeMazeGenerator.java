@@ -2,11 +2,16 @@ package com.makstuk.escapethemaze.backend.domain.maze;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class BinaryTreeMazeGenerator extends MazeGenerator {
 
     public BinaryTreeMazeGenerator(MazeGrid maze) {
         super(maze);
+    }
+
+    public BinaryTreeMazeGenerator(MazeGrid maze, Random random) {
+        super(maze, random);
     }
 
     @Override

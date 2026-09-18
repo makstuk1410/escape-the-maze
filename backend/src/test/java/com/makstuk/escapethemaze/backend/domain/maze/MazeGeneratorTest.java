@@ -4,10 +4,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 class MazeGeneratorTest {
+
+    @Test
+    void generatesTheSameGridForTheSameSeed() {
+        MazeGrid first = MazeGeneratorFactory.generate(GeneratorType.KRUSKAL, 10, 10, 12345L);
+        MazeGrid second = MazeGeneratorFactory.generate(GeneratorType.KRUSKAL, 10, 10, 12345L);
+
+        assertThat(first.getStartX()).isEqualTo(second.getStartX());
+        for (int y = 0; y < first.getHeight(); y++) {
+            for (int x = 0; x < first.getWidth(); x++) {
+                assertThat(first.getValue(y, x)).isEqualTo(second.getValue(y, x));
+            }
+        }
+    }
 
     @ParameterizedTest
     @EnumSource(GeneratorType.class)

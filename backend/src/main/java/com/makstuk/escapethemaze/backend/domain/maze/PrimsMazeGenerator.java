@@ -2,11 +2,16 @@ package com.makstuk.escapethemaze.backend.domain.maze;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class PrimsMazeGenerator extends MazeGenerator {
 
     public PrimsMazeGenerator(MazeGrid maze) {
         super(maze);
+    }
+
+    public PrimsMazeGenerator(MazeGrid maze, Random random) {
+        super(maze, random);
     }
 
     @Override

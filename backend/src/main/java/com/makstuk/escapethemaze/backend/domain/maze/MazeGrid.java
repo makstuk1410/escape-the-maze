@@ -1,6 +1,7 @@
 package com.makstuk.escapethemaze.backend.domain.maze;
 
 import java.util.Random;
+import java.util.Objects;
 
 /**
  * Numeric maze grid used while a generator carves walls (1) and paths (0).
@@ -14,14 +15,19 @@ public class MazeGrid {
     private final int startY = 0;
 
     public MazeGrid(int height, int width) {
+        this(height, width, new Random());
+    }
+
+    public MazeGrid(int height, int width, Random random) {
         if (height < 1 || width < 1) {
             throw new IllegalArgumentException("Maze dimensions must be positive");
         }
+        Objects.requireNonNull(random, "random must not be null");
 
         this.height = 2 * height + 1;
         this.width = 2 * width + 1;
         this.cells = new int[this.height][this.width];
-        this.startX = new Random().nextInt((this.width - 1) / 2) * 2 + 1;
+        this.startX = random.nextInt((this.width - 1) / 2) * 2 + 1;
         cells[startY + 1][startX] = 0;
     }
 

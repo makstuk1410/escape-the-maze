@@ -4,11 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class KruskalMazeGenerator extends MazeGenerator {
 
     public KruskalMazeGenerator(MazeGrid maze) {
         super(maze);
+    }
+
+    public KruskalMazeGenerator(MazeGrid maze, Random random) {
+        super(maze, random);
     }
 
     private record Position(int y, int x) {
