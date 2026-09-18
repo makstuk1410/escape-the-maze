@@ -33,15 +33,18 @@ public class GameService implements GameApplicationService {
 
     private final Clock clock;
     private final Random random;
+    private final GameResultPersistenceService gameResultPersistenceService;
     private final ConcurrentMap<UUID, GameSession> sessions = new ConcurrentHashMap<>();
 
-    public GameService(Clock clock) {
-        this(clock, new Random());
+    public GameService(Clock clock, GameResultPersistenceService gameResultPersistenceService) {
+        this(clock, new Random(), gameResultPersistenceService);
     }
 
-    GameService(Clock clock, Random random) {
+    GameService(Clock clock, Random random, GameResultPersistenceService gameResultPersistenceService) {
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
         this.random = Objects.requireNonNull(random, "random must not be null");
+        this.gameResultPersistenceService = Objects.requireNonNull(
+                gameResultPersistenceService, "gameResultPersistenceService must not be null");
     }
 
     @Override
@@ -79,6 +82,7 @@ public class GameService implements GameApplicationService {
         synchronized (session) {
             Instant now = clock.instant();
             if (session.timeoutIfExpired(now) || !session.acceptsMovement() || session.isFrozenAt(now)) {
+                persistCompletedResult(session, now);
                 return session;
             }
 
@@ -89,6 +93,7 @@ public class GameService implements GameApplicationService {
 
             session.updatePlayer(session.getPlayer().moveTo(target.get().x(), target.get().y()));
             applyTileEffect(session, now);
+            persistCompletedResult(session, now);
             return session;
         }
     }
@@ -120,6 +125,10 @@ public class GameService implements GameApplicationService {
                 // No effect after a successful move.
             }
         }
+    }
+
+    private void persistCompletedResult(GameSession session, Instant endedAt) {
+        gameResultPersistenceService.persistIfCompleted(session, endedAt);
     }
 
     private Maze generateMaze(Difficulty difficulty) {

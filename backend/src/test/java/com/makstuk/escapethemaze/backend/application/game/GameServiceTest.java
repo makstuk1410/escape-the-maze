@@ -2,6 +2,8 @@ package com.makstuk.escapethemaze.backend.application.game;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.makstuk.escapethemaze.backend.domain.game.Difficulty;
 import com.makstuk.escapethemaze.backend.domain.game.Direction;
@@ -22,7 +24,8 @@ class GameServiceTest {
     @Test
     void createsAndRetainsAConfiguredSessionForEachDifficulty() {
         Instant now = Instant.parse("2026-09-18T12:00:00Z");
-        GameService gameService = new GameService(Clock.fixed(now, ZoneOffset.UTC), new Random(42));
+        GameService gameService = new GameService(
+                Clock.fixed(now, ZoneOffset.UTC), new Random(42), mock(GameResultPersistenceService.class));
         UUID ownerUserId = UUID.randomUUID();
 
         for (Difficulty difficulty : Difficulty.values()) {
@@ -156,12 +159,28 @@ class GameServiceTest {
         assertThat(result.acceptsMovement()).isFalse();
     }
 
+    @Test
+    void persistsTheAuthoritativeSessionWhenAMoveEndsTheGame() {
+        Instant now = Instant.parse("2026-09-18T12:00:00Z");
+        GameResultPersistenceService persistenceService = mock(GameResultPersistenceService.class);
+        GameService gameService = new GameService(Clock.fixed(now, ZoneOffset.UTC), new Random(42), persistenceService);
+        UUID ownerUserId = UUID.randomUUID();
+        var session = gameService.createGame(ownerUserId, Difficulty.EASY);
+        makeDownTile(session, TileType.EXIT);
+
+        gameService.move(session.getId(), ownerUserId, Direction.DOWN);
+
+        verify(persistenceService).persistIfCompleted(session, now);
+    }
+
     private void makeDownTile(GameSession session, TileType tileType) {
         session.getMaze().replaceTile(session.getPlayer().x(), session.getPlayer().y() + 1, tileType);
     }
 
     private GameService gameService() {
         return new GameService(
-                Clock.fixed(Instant.parse("2026-09-18T12:00:00Z"), ZoneOffset.UTC), new Random(42));
+                Clock.fixed(Instant.parse("2026-09-18T12:00:00Z"), ZoneOffset.UTC),
+                new Random(42),
+                mock(GameResultPersistenceService.class));
     }
 }
