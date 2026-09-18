@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.makstuk.escapethemaze.backend.domain.game.Difficulty;
 import com.makstuk.escapethemaze.backend.domain.game.Direction;
 import com.makstuk.escapethemaze.backend.domain.game.GameRules;
+import com.makstuk.escapethemaze.backend.domain.game.GameSession;
 import com.makstuk.escapethemaze.backend.domain.game.GameStatus;
 import com.makstuk.escapethemaze.backend.domain.maze.TileType;
 import java.time.Clock;
@@ -85,6 +86,66 @@ class GameServiceTest {
         assertThatThrownBy(() -> gameService.move(session.getId(), UUID.randomUUID(), Direction.DOWN))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("do not own");
+    }
+
+    @Test
+    void appliesSpikeDamageAfterMovingOntoSpikes() {
+        GameService gameService = gameService();
+        UUID ownerUserId = UUID.randomUUID();
+        var session = gameService.createGame(ownerUserId, Difficulty.EASY);
+        makeDownTile(session, TileType.SPIKES);
+
+        var result = gameService.move(session.getId(), ownerUserId, Direction.DOWN);
+
+        assertThat(result.getPlayer().health()).isEqualTo(100 - GameRules.SPIKES_DAMAGE);
+        assertThat(result.getDamageCooldownUntil()).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(GameStatus.RUNNING);
+    }
+
+    @Test
+    void freezesFurtherMovementAfterMovingOntoFreeze() {
+        GameService gameService = gameService();
+        UUID ownerUserId = UUID.randomUUID();
+        var session = gameService.createGame(ownerUserId, Difficulty.EASY);
+        makeDownTile(session, TileType.FREEZE);
+
+        var frozenSession = gameService.move(session.getId(), ownerUserId, Direction.DOWN);
+        var frozenPlayer = frozenSession.getPlayer();
+        var result = gameService.move(session.getId(), ownerUserId, Direction.RIGHT);
+
+        assertThat(frozenSession.getFrozenUntil()).isNotNull();
+        assertThat(result.getPlayer()).isEqualTo(frozenPlayer);
+    }
+
+    @Test
+    void activatesFogAfterMovingOntoFog() {
+        GameService gameService = gameService();
+        UUID ownerUserId = UUID.randomUUID();
+        var session = gameService.createGame(ownerUserId, Difficulty.EASY);
+        makeDownTile(session, TileType.FOG);
+
+        var result = gameService.move(session.getId(), ownerUserId, Direction.DOWN);
+
+        assertThat(result.getFogUntil()).isNotNull();
+        assertThat(result.isFogActiveAt(Instant.parse("2026-09-18T12:00:00Z"))).isTrue();
+    }
+
+    @Test
+    void winsAndAwardsExitScoreAfterMovingOntoExit() {
+        GameService gameService = gameService();
+        UUID ownerUserId = UUID.randomUUID();
+        var session = gameService.createGame(ownerUserId, Difficulty.EASY);
+        makeDownTile(session, TileType.EXIT);
+
+        var result = gameService.move(session.getId(), ownerUserId, Direction.DOWN);
+
+        assertThat(result.getStatus()).isEqualTo(GameStatus.WON);
+        assertThat(result.getScore()).isEqualTo(GameRules.EXIT_SCORE);
+        assertThat(result.acceptsMovement()).isFalse();
+    }
+
+    private void makeDownTile(GameSession session, TileType tileType) {
+        session.getMaze().replaceTile(session.getPlayer().x(), session.getPlayer().y() + 1, tileType);
     }
 
     private GameService gameService() {
