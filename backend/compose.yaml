@@ -25,6 +25,7 @@ services:
       DB_NAME: escape_the_maze
       DB_USERNAME: escape_the_maze
       DB_PASSWORD: escape_the_maze_dev
+      SPRING_PROFILES_ACTIVE: dev
       JWT_SECRET: ${JWT_SECRET:-dGhpcy1pcy1hLWRldmVsb3BtZW50LW9ubHktc2VjcmV0LWNoYW5nZS1tZQ==}
     depends_on:
       postgres:
