@@ -1,1 +1,3 @@
 /target/
+/backend/target/
+/backend/.m2/
