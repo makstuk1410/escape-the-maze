@@ -1,10 +1,132 @@
 package com.makstuk.escapethemaze.backend.domain.game;
 
+import com.makstuk.escapethemaze.backend.domain.maze.Maze;
+import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Server-authoritative in-memory game state. Persistence is intentionally
- * limited to completed results; this type is a migration placeholder.
+ * Server-authoritative in-memory state for one active game.
  */
-public record GameSession(UUID id, UUID userId, Difficulty difficulty, GameStatus status) {
+public class GameSession {
+
+    private final UUID id;
+    private final UUID ownerUserId;
+    private final Difficulty difficulty;
+    private final Maze maze;
+    private PlayerState player;
+    private int score;
+    private GameStatus status;
+    private final Instant startedAt;
+    private final Instant endsAt;
+    private Instant frozenUntil;
+    private Instant fogUntil;
+    private long stateVersion;
+
+    public GameSession(
+            UUID id,
+            UUID ownerUserId,
+            Difficulty difficulty,
+            Maze maze,
+            PlayerState player,
+            Instant startedAt,
+            Instant endsAt) {
+        this.id = Objects.requireNonNull(id, "id must not be null");
+        this.ownerUserId = Objects.requireNonNull(ownerUserId, "ownerUserId must not be null");
+        this.difficulty = Objects.requireNonNull(difficulty, "difficulty must not be null");
+        this.maze = Objects.requireNonNull(maze, "maze must not be null");
+        this.player = Objects.requireNonNull(player, "player must not be null");
+        this.startedAt = Objects.requireNonNull(startedAt, "startedAt must not be null");
+        this.endsAt = Objects.requireNonNull(endsAt, "endsAt must not be null");
+        if (!endsAt.isAfter(startedAt)) {
+            throw new IllegalArgumentException("endsAt must be after startedAt");
+        }
+        this.score = 0;
+        this.status = GameStatus.RUNNING;
+        this.stateVersion = 0;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public UUID getOwnerUserId() {
+        return ownerUserId;
+    }
+
+    public Difficulty getDifficulty() {
+        return difficulty;
+    }
+
+    public Maze getMaze() {
+        return maze;
+    }
+
+    public PlayerState getPlayer() {
+        return player;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public GameStatus getStatus() {
+        return status;
+    }
+
+    public Instant getStartedAt() {
+        return startedAt;
+    }
+
+    public Instant getEndsAt() {
+        return endsAt;
+    }
+
+    public Instant getFrozenUntil() {
+        return frozenUntil;
+    }
+
+    public Instant getFogUntil() {
+        return fogUntil;
+    }
+
+    public long getStateVersion() {
+        return stateVersion;
+    }
+
+    public boolean acceptsMovement() {
+        return status == GameStatus.RUNNING;
+    }
+
+    public void updatePlayer(PlayerState player) {
+        this.player = Objects.requireNonNull(player, "player must not be null");
+        incrementStateVersion();
+    }
+
+    public void addScore(int points) {
+        if (points < 0) {
+            throw new IllegalArgumentException("Score points must not be negative");
+        }
+        score += points;
+        incrementStateVersion();
+    }
+
+    public void updateStatus(GameStatus status) {
+        this.status = Objects.requireNonNull(status, "status must not be null");
+        incrementStateVersion();
+    }
+
+    public void updateFrozenUntil(Instant frozenUntil) {
+        this.frozenUntil = frozenUntil;
+        incrementStateVersion();
+    }
+
+    public void updateFogUntil(Instant fogUntil) {
+        this.fogUntil = fogUntil;
+        incrementStateVersion();
+    }
+
+    private void incrementStateVersion() {
+        stateVersion++;
+    }
 }
