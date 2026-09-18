@@ -1,6 +1,7 @@
 package com.makstuk.escapethemaze.backend.application.game;
 
 import com.makstuk.escapethemaze.backend.domain.game.Difficulty;
+import com.makstuk.escapethemaze.backend.domain.game.Direction;
 import com.makstuk.escapethemaze.backend.domain.game.GameRules;
 import com.makstuk.escapethemaze.backend.domain.game.GameSession;
 import com.makstuk.escapethemaze.backend.domain.game.PlayerState;
@@ -21,6 +22,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Creates and retains authoritative in-memory game sessions.
@@ -61,9 +64,58 @@ public class GameService implements GameApplicationService {
         return session;
     }
 
+    /**
+     * Applies a single command to the server-side session. Invalid movement is deliberately
+     * idempotent: the caller receives the unchanged authoritative state.
+     */
+    @Override
+    public GameSession move(UUID gameId, UUID ownerUserId, Direction direction) {
+        Objects.requireNonNull(gameId, "gameId must not be null");
+        Objects.requireNonNull(ownerUserId, "ownerUserId must not be null");
+        Objects.requireNonNull(direction, "direction must not be null");
+
+        GameSession session = sessions.get(gameId);
+        if (session == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game session was not found");
+        }
+        if (!session.getOwnerUserId().equals(ownerUserId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this game session");
+        }
+
+        synchronized (session) {
+            Instant now = clock.instant();
+            if (session.timeoutIfExpired(now) || !session.acceptsMovement() || session.isFrozenAt(now)) {
+                return session;
+            }
+
+            Optional<Position> target = session.validMoveTarget(direction);
+            if (target.isEmpty()) {
+                return session;
+            }
+
+            session.updatePlayer(session.getPlayer().moveTo(target.get().x(), target.get().y()));
+            applyTileEffect(session, now);
+            return session;
+        }
+    }
+
     @Override
     public Optional<GameSession> findGame(UUID gameId) {
         return Optional.ofNullable(sessions.get(gameId));
+    }
+
+    private void applyTileEffect(GameSession session, Instant now) {
+        TileType tile = session.getMaze().tileAt(session.getPlayer().x(), session.getPlayer().y());
+        switch (tile) {
+            case GOLD -> session.collectGoldAtPlayer();
+            case SPIKES -> session.applySpikeDamageAtPlayer(now);
+            case FREEZE -> session.applyFreezeAtPlayer(now);
+            case FOG -> session.applyFogAtPlayer(now);
+            case EXIT -> session.winAtExit();
+            case WALL, EMPTY -> {
+                // No effect after a successful move.
+            }
+        }
     }
 
     private Maze generateMaze(Difficulty difficulty) {

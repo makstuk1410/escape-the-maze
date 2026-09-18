@@ -1,6 +1,7 @@
 package com.makstuk.escapethemaze.backend.application.game;
 
 import com.makstuk.escapethemaze.backend.domain.game.Difficulty;
+import com.makstuk.escapethemaze.backend.domain.game.Direction;
 import com.makstuk.escapethemaze.backend.domain.game.GameSession;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,6 +12,11 @@ import java.util.UUID;
 public interface GameApplicationService {
 
     GameSession createGame(UUID ownerUserId, Difficulty difficulty);
+
+    /**
+     * Applies one player movement command and returns the resulting authoritative state.
+     */
+    GameSession move(UUID gameId, UUID ownerUserId, Direction direction);
 
     Optional<GameSession> findGame(UUID gameId);
 }
