@@ -48,4 +48,17 @@ public class MazeGrid {
     public void setValue(int y, int x, int value) {
         cells[y][x] = value;
     }
+
+    /**
+     * Converts generator values into the gameplay tile representation.
+     */
+    public TileType[][] toTileTypes() {
+        TileType[][] tiles = new TileType[height][width];
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                tiles[y][x] = cells[y][x] == 0 ? TileType.EMPTY : TileType.WALL;
+            }
+        }
+        return tiles;
+    }
 }
