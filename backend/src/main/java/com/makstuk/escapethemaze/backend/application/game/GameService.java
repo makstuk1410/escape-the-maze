@@ -21,6 +21,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -36,6 +37,7 @@ public class GameService implements GameApplicationService {
     private final GameResultPersistenceService gameResultPersistenceService;
     private final ConcurrentMap<UUID, GameSession> sessions = new ConcurrentHashMap<>();
 
+    @Autowired
     public GameService(Clock clock, GameResultPersistenceService gameResultPersistenceService) {
         this(clock, new Random(), gameResultPersistenceService);
     }
