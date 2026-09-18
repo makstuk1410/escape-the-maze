@@ -94,11 +94,6 @@ public class GameService implements GameApplicationService {
     }
 
     @Override
-    public Optional<GameSession> findGame(UUID gameId) {
-        return Optional.ofNullable(sessions.get(gameId));
-    }
-
-    @Override
     public GameSession getGame(UUID gameId, UUID ownerUserId) {
         Objects.requireNonNull(gameId, "gameId must not be null");
         Objects.requireNonNull(ownerUserId, "ownerUserId must not be null");

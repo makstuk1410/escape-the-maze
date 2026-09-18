@@ -3,7 +3,6 @@ package com.makstuk.escapethemaze.backend.application.game;
 import com.makstuk.escapethemaze.backend.domain.game.Difficulty;
 import com.makstuk.escapethemaze.backend.domain.game.Direction;
 import com.makstuk.escapethemaze.backend.domain.game.GameSession;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -20,6 +19,4 @@ public interface GameApplicationService {
 
     /** Returns an existing session only when it belongs to the requesting user. */
     GameSession getGame(UUID gameId, UUID ownerUserId);
-
-    Optional<GameSession> findGame(UUID gameId);
 }

@@ -40,7 +40,7 @@ class GameServiceTest {
             assertThat(session.getPlayer().y()).isEqualTo(session.getMaze().getStart().y());
             assertThat(session.getMaze().tileAt(
                     session.getMaze().getExit().x(), session.getMaze().getExit().y())).isEqualTo(TileType.EXIT);
-            assertThat(gameService.findGame(session.getId())).containsSame(session);
+            assertThat(gameService.getGame(session.getId(), ownerUserId)).isSameAs(session);
         }
     }
 
