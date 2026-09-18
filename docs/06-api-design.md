@@ -37,6 +37,17 @@
 - `GET /api/levels` provides supported difficulties and their fixed maze
   generators; the browser does not choose a generator independently.
 - `POST /api/games` creates the maze, player, timer, and active `GameSession`.
+  It accepts only the selected difficulty; the authenticated JWT identity becomes
+  the session owner. A successful request returns `201 Created`, a
+  `Location: /api/games/{gameId}` header, and the initial authoritative state.
+
+  ```json
+  { "difficulty": "EASY" }
+  ```
+
+  The response contains `gameId`, `difficulty`, fixed `generator`, `width`,
+  `height`, the complete `tiles` grid, `player` coordinates and health, `score`,
+  `status`, `startedAt`, `endsAt`, and `stateVersion`.
 - `GET /api/games/{gameId}` is used to restore an active game after refresh or
   WebSocket reconnection. The server must reject requests from non-owners.
 
