@@ -1,18 +1,20 @@
 package com.makstuk.escapethemaze.backend.security.jwt;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Creates signed, short-lived access tokens. Token verification is added separately.
+ * Creates and verifies signed, short-lived access tokens.
  */
 @Service
 public class JwtTokenService {
@@ -40,5 +42,24 @@ public class JwtTokenService {
                 .compact();
 
         return new GeneratedToken(value, expiresAt);
+    }
+
+    public Optional<AuthenticatedUser> parse(String token) {
+        try {
+            var claims = Jwts.parser()
+                    .verifyWith(signingKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            String username = claims.get("username", String.class);
+
+            if (username == null || username.isBlank()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(new AuthenticatedUser(UUID.fromString(claims.getSubject()), username));
+        } catch (JwtException | IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 }
