@@ -12,6 +12,7 @@ public final class GameRules {
     public static final Duration DAMAGE_COOLDOWN = Duration.ofSeconds(1);
     public static final Duration FREEZE_DURATION = Duration.ofSeconds(3);
     public static final Duration FOG_DURATION = Duration.ofSeconds(4);
+    public static final int EXIT_SCORE = 100;
 
     private GameRules() {
     }

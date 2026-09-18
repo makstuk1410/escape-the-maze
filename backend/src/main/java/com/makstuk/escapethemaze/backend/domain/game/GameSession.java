@@ -243,6 +243,22 @@ public class GameSession {
         return fogUntil != null && now.isBefore(fogUntil);
     }
 
+    /**
+     * Finishes the game when the player is standing on the exit tile.
+     *
+     * @return {@code true} when the session changed to {@link GameStatus#WON}
+     */
+    public boolean winAtExit() {
+        if (!acceptsMovement() || maze.tileAt(player.x(), player.y()) != TileType.EXIT) {
+            return false;
+        }
+
+        score += GameRules.EXIT_SCORE;
+        status = GameStatus.WON;
+        incrementStateVersion();
+        return true;
+    }
+
     public void updateStatus(GameStatus status) {
         this.status = Objects.requireNonNull(status, "status must not be null");
         incrementStateVersion();
