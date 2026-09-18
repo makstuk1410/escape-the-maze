@@ -58,7 +58,9 @@
 - `GET /api/leaderboard?difficulty={difficulty}` requires one of `EASY`,
   `NORMAL`, `HARD`, or `EXPERT` and returns only persisted game results for
   that difficulty, ordered by server-calculated score descending and completion
-  time ascending.
+  time ascending. It is public and returns the requested `difficulty` plus
+  ranked entries containing only `rank`, `username`, `score`, `status`, and
+  `endedAt`.
 - The API returns `400 Bad Request` when `difficulty` is missing or is not a
   supported value. It never returns a combined cross-difficulty ranking.
 - The API does not expose a client-controlled score-submission endpoint.
