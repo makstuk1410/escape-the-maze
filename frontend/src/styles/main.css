@@ -1,0 +1,134 @@
+@import "./tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--color-surface-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+button,
+canvas {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 112px;
+  padding: 24px max(32px, calc((100vw - 1240px) / 2));
+  border-bottom: 1px solid var(--color-surface-border);
+  background: var(--color-surface-default);
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  margin-top: 4px;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+h2 {
+  font-size: 1.125rem;
+}
+
+.eyebrow {
+  color: var(--color-action-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.status-pill,
+.key-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-surface-border);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-action-primary);
+}
+
+.app-content {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.32fr) 1fr;
+  gap: 1.5rem;
+  width: min(1240px, calc(100% - 64px));
+  margin: 2rem auto;
+}
+
+.panel {
+  border: 1px solid var(--color-surface-border);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  background: var(--color-surface-hover);
+}
+
+.view-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-secondary);
+}
+
+.view-list li {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-surface-border), transparent 35%);
+  padding-bottom: 0.75rem;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-surface-border);
+  border-radius: 1rem;
+  background: var(--color-surface-background);
+}
+
+@media (max-width: 760px) {
+  .app-header,
+  .panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .app-content {
+    grid-template-columns: 1fr;
+    width: min(100% - 32px, 640px);
+    margin-top: 1rem;
+  }
+}
