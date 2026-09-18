@@ -1,8 +1,10 @@
 package com.makstuk.escapethemaze.backend.domain.game;
 
 import com.makstuk.escapethemaze.backend.domain.maze.Maze;
+import com.makstuk.escapethemaze.backend.domain.maze.Position;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -40,6 +42,9 @@ public class GameSession {
         this.endsAt = Objects.requireNonNull(endsAt, "endsAt must not be null");
         if (!endsAt.isAfter(startedAt)) {
             throw new IllegalArgumentException("endsAt must be after startedAt");
+        }
+        if (!maze.isInBounds(player.x(), player.y()) || !maze.tileAt(player.x(), player.y()).isWalkable()) {
+            throw new IllegalArgumentException("Player must start on a walkable maze tile");
         }
         this.score = 0;
         this.status = GameStatus.RUNNING;
@@ -96,6 +101,24 @@ public class GameSession {
 
     public boolean acceptsMovement() {
         return status == GameStatus.RUNNING;
+    }
+
+    /**
+     * Returns the one-tile target only when it is inside the maze and walkable.
+     * This method does not mutate player state.
+     */
+    public Optional<Position> validMoveTarget(Direction direction) {
+        Objects.requireNonNull(direction, "direction must not be null");
+        if (!acceptsMovement()) {
+            return Optional.empty();
+        }
+
+        int targetX = player.x() + direction.deltaX();
+        int targetY = player.y() + direction.deltaY();
+        if (!maze.isInBounds(targetX, targetY) || !maze.tileAt(targetX, targetY).isWalkable()) {
+            return Optional.empty();
+        }
+        return Optional.of(new Position(targetX, targetY));
     }
 
     public void updatePlayer(PlayerState player) {
