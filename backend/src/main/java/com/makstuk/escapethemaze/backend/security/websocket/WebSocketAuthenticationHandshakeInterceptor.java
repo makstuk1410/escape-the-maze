@@ -24,6 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class WebSocketAuthenticationHandshakeInterceptor implements HandshakeInterceptor {
 
     public static final String AUTHENTICATED_USER_ATTRIBUTE = "authenticatedUser";
+    public static final String GAME_ID_ATTRIBUTE = "gameId";
 
     private static final UriTemplate GAME_ENDPOINT = new UriTemplate("/ws/games/{gameId}");
 
@@ -80,7 +81,9 @@ public class WebSocketAuthenticationHandshakeInterceptor implements HandshakeInt
             URI uri, AuthenticatedUser user, ServerHttpResponse response, Map<String, Object> attributes) {
         try {
             String gameId = GAME_ENDPOINT.match(uri.getPath()).get("gameId");
-            gameApplicationService.getGame(UUID.fromString(gameId), user.id());
+            UUID parsedGameId = UUID.fromString(gameId);
+            gameApplicationService.getGame(parsedGameId, user.id());
+            attributes.put(GAME_ID_ATTRIBUTE, parsedGameId);
             return storeAuthenticatedUser(user, attributes);
         } catch (IllegalArgumentException exception) {
             response.setStatusCode(HttpStatus.NOT_FOUND);

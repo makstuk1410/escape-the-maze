@@ -38,6 +38,7 @@ class WebSocketAuthenticationHandshakeInterceptorTest {
         assertThat(accepted).isTrue();
         assertThat(attributes).containsEntry(
                 WebSocketAuthenticationHandshakeInterceptor.AUTHENTICATED_USER_ATTRIBUTE, user);
+        assertThat(attributes).containsEntry(WebSocketAuthenticationHandshakeInterceptor.GAME_ID_ATTRIBUTE, gameId);
         verify(gameApplicationService).getGame(gameId, user.id());
     }
 

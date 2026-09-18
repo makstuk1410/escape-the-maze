@@ -7,6 +7,7 @@ import com.makstuk.escapethemaze.backend.application.game.GameApplicationService
 import com.makstuk.escapethemaze.backend.security.jwt.JwtTokenService;
 import com.makstuk.escapethemaze.backend.security.websocket.WebSocketAuthenticationHandshakeInterceptor;
 import com.makstuk.escapethemaze.backend.websocket.GameWebSocketHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
@@ -15,7 +16,8 @@ class WebSocketConfigurationTest {
 
     @Test
     void registersTheNativeGameEndpointForTheFrontendOrigin() {
-        GameWebSocketHandler handler = new GameWebSocketHandler();
+        GameWebSocketHandler handler = new GameWebSocketHandler(
+                new ObjectMapper(), org.mockito.Mockito.mock(GameApplicationService.class));
         WebSocketAuthenticationHandshakeInterceptor interceptor =
                 new WebSocketAuthenticationHandshakeInterceptor(
                         org.mockito.Mockito.mock(JwtTokenService.class),
