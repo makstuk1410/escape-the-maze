@@ -57,6 +57,28 @@ class GameSessionTest {
         assertThat(session.validMoveTarget(Direction.DOWN)).contains(new Position(0, 1));
     }
 
+    @Test
+    void collectsGoldOnceAndReplacesTheTileWithEmpty() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.NORMAL,
+                goldMaze(),
+                new PlayerState(1, 1),
+                startedAt,
+                startedAt.plusSeconds(300));
+
+        session.updatePlayer(new PlayerState(1, 2));
+
+        assertThat(session.collectGoldAtPlayer()).isTrue();
+        assertThat(session.getScore()).isEqualTo(GameRules.GOLD_SCORE);
+        assertThat(session.getMaze().tileAt(1, 2)).isEqualTo(TileType.EMPTY);
+        assertThat(session.collectGoldAtPlayer()).isFalse();
+        assertThat(session.getScore()).isEqualTo(GameRules.GOLD_SCORE);
+        assertThat(session.getStateVersion()).isEqualTo(2);
+    }
+
     private Maze maze() {
         TileType[][] tiles = {
             {TileType.WALL, TileType.WALL, TileType.WALL},
@@ -73,5 +95,15 @@ class GameSessionTest {
             {TileType.WALL, TileType.EXIT, TileType.WALL}
         };
         return new Maze(tiles, new Position(0, 0), new Position(1, 2), GeneratorType.DFS);
+    }
+
+    private Maze goldMaze() {
+        TileType[][] tiles = {
+            {TileType.WALL, TileType.WALL, TileType.WALL},
+            {TileType.WALL, TileType.EMPTY, TileType.WALL},
+            {TileType.WALL, TileType.GOLD, TileType.WALL},
+            {TileType.WALL, TileType.EXIT, TileType.WALL}
+        };
+        return new Maze(tiles, new Position(1, 1), new Position(1, 3), GeneratorType.PRIM);
     }
 }

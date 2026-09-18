@@ -2,6 +2,7 @@ package com.makstuk.escapethemaze.backend.domain.game;
 
 import com.makstuk.escapethemaze.backend.domain.maze.Maze;
 import com.makstuk.escapethemaze.backend.domain.maze.Position;
+import com.makstuk.escapethemaze.backend.domain.maze.TileType;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -132,6 +133,22 @@ public class GameSession {
         }
         score += points;
         incrementStateVersion();
+    }
+
+    /**
+     * Collects gold under the current player position exactly once.
+     *
+     * @return {@code true} when gold was collected; otherwise {@code false}
+     */
+    public boolean collectGoldAtPlayer() {
+        if (!acceptsMovement() || maze.tileAt(player.x(), player.y()) != TileType.GOLD) {
+            return false;
+        }
+
+        maze.replaceTile(player.x(), player.y(), TileType.EMPTY);
+        score += GameRules.GOLD_SCORE;
+        incrementStateVersion();
+        return true;
     }
 
     public void updateStatus(GameStatus status) {
