@@ -121,6 +121,27 @@ class GameSessionTest {
         assertThat(session.applySpikeDamageAtPlayer(startedAt.plusSeconds(5))).isFalse();
     }
 
+    @Test
+    void setsAndExtendsTheFreezeDeadline() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.NORMAL,
+                freezeMaze(),
+                new PlayerState(1, 1),
+                startedAt,
+                startedAt.plusSeconds(300));
+
+        assertThat(session.applyFreezeAtPlayer(startedAt)).isTrue();
+        assertThat(session.getFrozenUntil()).isEqualTo(startedAt.plusSeconds(3));
+        assertThat(session.isFrozenAt(startedAt.plusSeconds(2))).isTrue();
+
+        assertThat(session.applyFreezeAtPlayer(startedAt.plusSeconds(1))).isTrue();
+        assertThat(session.getFrozenUntil()).isEqualTo(startedAt.plusSeconds(4));
+        assertThat(session.isFrozenAt(startedAt.plusSeconds(4))).isFalse();
+    }
+
     private Maze maze() {
         TileType[][] tiles = {
             {TileType.WALL, TileType.WALL, TileType.WALL},
@@ -156,5 +177,14 @@ class GameSessionTest {
             {TileType.WALL, TileType.EXIT, TileType.WALL}
         };
         return new Maze(tiles, new Position(1, 1), new Position(1, 2), GeneratorType.KRUSKAL);
+    }
+
+    private Maze freezeMaze() {
+        TileType[][] tiles = {
+            {TileType.WALL, TileType.WALL, TileType.WALL},
+            {TileType.WALL, TileType.FREEZE, TileType.WALL},
+            {TileType.WALL, TileType.EXIT, TileType.WALL}
+        };
+        return new Maze(tiles, new Position(1, 1), new Position(1, 2), GeneratorType.BINARY_TREE);
     }
 }

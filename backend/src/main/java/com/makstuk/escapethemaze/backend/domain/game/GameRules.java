@@ -10,6 +10,7 @@ public final class GameRules {
     public static final int GOLD_SCORE = 10;
     public static final int SPIKES_DAMAGE = 20;
     public static final Duration DAMAGE_COOLDOWN = Duration.ofSeconds(1);
+    public static final Duration FREEZE_DURATION = Duration.ofSeconds(3);
 
     private GameRules() {
     }

@@ -183,6 +183,36 @@ public class GameSession {
         return applySpikeDamageAtPlayer(Instant.now());
     }
 
+    /**
+     * Sets or extends the freeze effect when the player is standing on freeze.
+     *
+     * @return {@code true} when the freeze deadline was extended; otherwise {@code false}
+     */
+    public boolean applyFreezeAtPlayer(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (!acceptsMovement() || maze.tileAt(player.x(), player.y()) != TileType.FREEZE) {
+            return false;
+        }
+
+        Instant proposedFrozenUntil = now.plus(GameRules.FREEZE_DURATION);
+        if (frozenUntil != null && !frozenUntil.isBefore(proposedFrozenUntil)) {
+            return false;
+        }
+
+        frozenUntil = proposedFrozenUntil;
+        incrementStateVersion();
+        return true;
+    }
+
+    public boolean applyFreezeAtPlayer() {
+        return applyFreezeAtPlayer(Instant.now());
+    }
+
+    public boolean isFrozenAt(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        return frozenUntil != null && now.isBefore(frozenUntil);
+    }
+
     public void updateStatus(GameStatus status) {
         this.status = Objects.requireNonNull(status, "status must not be null");
         incrementStateVersion();
