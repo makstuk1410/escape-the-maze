@@ -1,4 +1,4 @@
-import { ApiError, leaderboardApi, type Difficulty } from "./api";
+import { ApiError, gameApi, leaderboardApi, type Difficulty, type Level } from "./api";
 import { authState } from "./auth";
 import "./styles/main.css";
 
@@ -14,6 +14,10 @@ void authState.restore().then(renderCurrentPage);
 function renderCurrentPage(): void {
   if (window.location.hash === "#menu") {
     void renderMenuPage();
+    return;
+  }
+  if (window.location.hash === "#game-setup") {
+    void renderGameSetupPage();
     return;
   }
   if (window.location.hash === "#register") {
@@ -78,6 +82,92 @@ function renderLoginPage(): void {
       submitButton.textContent = "Sign in";
     }
   });
+}
+
+async function renderGameSetupPage(): Promise<void> {
+  if (!authState.isAuthenticated()) {
+    window.location.hash = "#login";
+    return;
+  }
+
+  app!.innerHTML = `
+    <main class="setup-page">
+      <aside class="setup-brand-panel">
+        <div class="setup-brand-copy">
+          <p class="eyebrow">NEW GAME</p>
+          <h1>BUILD YOUR<br>ESCAPE.</h1>
+          <span class="title-accent" aria-hidden="true"></span>
+          <p class="setup-tagline">Choose a challenge. The maze generator is fixed for fair rankings.</p>
+          <section class="selected-run-card" aria-label="Selected run">
+            <span>SELECTED RUN</span>
+            <strong id="selected-level">Loading level…</strong>
+            <p id="selected-generator"></p>
+          </section>
+        </div>
+      </aside>
+      <section class="setup-content" aria-labelledby="setup-heading">
+        <header class="setup-header">
+          <h2 id="setup-heading">Choose a difficulty</h2>
+          <p>Each difficulty locks its generator so its leaderboard remains fair.</p>
+        </header>
+        <div class="difficulty-grid" id="difficulty-grid" aria-live="polite"></div>
+        <p class="ranked-notice">Ranked runs use the generator shown on the selected difficulty.</p>
+        <p class="setup-message" id="setup-message" role="status" aria-live="polite"></p>
+        <button class="primary-button setup-start-button" type="button" id="start-game-button" disabled>Loading levels…</button>
+      </section>
+    </main>
+  `;
+
+  const grid = app!.querySelector<HTMLDivElement>("#difficulty-grid");
+  const levelTitle = app!.querySelector<HTMLElement>("#selected-level");
+  const generatorText = app!.querySelector<HTMLElement>("#selected-generator");
+  const message = app!.querySelector<HTMLParagraphElement>("#setup-message");
+  const startButton = app!.querySelector<HTMLButtonElement>("#start-game-button");
+  if (!grid || !levelTitle || !generatorText || !message || !startButton) throw new Error("Game setup screen could not be initialized.");
+
+  try {
+    const levels = await gameApi.getLevels();
+    let selectedLevel = levels.find((level) => level.difficulty === "NORMAL") ?? levels[0];
+    if (!selectedLevel) throw new Error("No game levels are available.");
+
+    const updateSelection = (level: Level): void => {
+      selectedLevel = level;
+      grid.innerHTML = levels.map((item) => difficultyOption(item, item.difficulty === level.difficulty)).join("");
+      levelTitle.textContent = `${level.difficulty}  •  ${level.logicalMazeWidth} × ${level.logicalMazeHeight} maze`;
+      generatorText.textContent = `${formatGenerator(level.generator)} generator  •  fixed for ${formatDifficulty(level.difficulty)}`;
+      startButton.textContent = `Start game  •  ${level.difficulty} / ${level.generator}`;
+      grid.querySelectorAll<HTMLButtonElement>("[data-difficulty]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const next = levels.find((item) => item.difficulty === button.dataset.difficulty);
+          if (next) updateSelection(next);
+        });
+      });
+    };
+
+    updateSelection(selectedLevel);
+    startButton.disabled = false;
+    startButton.addEventListener("click", async () => {
+      startButton.disabled = true;
+      startButton.textContent = "Creating your maze…";
+      message.textContent = "";
+      try {
+        const game = await gameApi.createGame(selectedLevel.difficulty);
+        window.sessionStorage.setItem("escape-the-maze.current-game-id", game.gameId);
+        message.textContent = "Maze created. The gameplay screen is the next step.";
+      } catch (error) {
+        message.textContent = error instanceof ApiError ? error.message : "We could not create this game.";
+        message.classList.add("is-error");
+      } finally {
+        startButton.disabled = false;
+        startButton.textContent = `Start game  •  ${selectedLevel.difficulty} / ${selectedLevel.generator}`;
+      }
+    });
+  } catch (error) {
+    grid.innerHTML = "<p class=\"setup-load-error\">Levels could not be loaded. Start the backend and sign in again.</p>";
+    message.textContent = error instanceof Error ? error.message : "Levels could not be loaded.";
+    message.classList.add("is-error");
+    startButton.textContent = "Levels unavailable";
+  }
 }
 
 async function renderMenuPage(): Promise<void> {
@@ -165,6 +255,23 @@ async function loadPersonalBestScores(username: string): Promise<Record<Difficul
 
 function bestScoreCell(difficulty: string, score: string): string {
   return `<div class="best-score-cell"><span>${difficulty}</span><strong>${score}</strong></div>`;
+}
+
+function difficultyOption(level: Level, selected: boolean): string {
+  return `
+    <button class="difficulty-option${selected ? " is-selected" : ""}" type="button" data-difficulty="${level.difficulty}" aria-pressed="${selected}">
+      <strong>${level.difficulty}</strong>
+      <span>${level.logicalMazeWidth} × ${level.logicalMazeHeight} maze  •  ${formatGenerator(level.generator)} generator</span>
+    </button>
+  `;
+}
+
+function formatDifficulty(difficulty: Difficulty): string {
+  return difficulty.charAt(0) + difficulty.slice(1).toLowerCase();
+}
+
+function formatGenerator(generator: Level["generator"]): string {
+  return generator === "DFS" ? "DFS" : generator.charAt(0) + generator.slice(1).toLowerCase();
 }
 
 function renderRegisterPage(): void {
