@@ -191,14 +191,23 @@ async function renderGameplayCanvasPage(): Promise<void> {
         <div><p class="eyebrow">ESCAPE THE MAZE</p><h1>YOUR RUN</h1></div>
         <span class="game-id-label">11 × 11 viewport</span>
       </header>
-      <section class="canvas-stage" aria-label="Maze game area">
-        <canvas id="game-canvas" width="720" height="720" aria-label="Maze game canvas"></canvas>
+      <section class="gameplay-layout" aria-label="Maze game area">
+        <aside class="run-stats" aria-label="Run statistics">
+          <section class="score-card" aria-labelledby="score-label">
+            <p id="score-label">SCORE</p>
+            <output id="score-value">0000</output>
+          </section>
+        </aside>
+        <section class="canvas-stage">
+          <canvas id="game-canvas" width="720" height="720" aria-label="Maze game canvas"></canvas>
+        </section>
       </section>
     </main>
   `;
 
   const canvas = app!.querySelector<HTMLCanvasElement>("#game-canvas");
-  if (!canvas) throw new Error("Game canvas could not be initialized.");
+  const scoreValue = app!.querySelector<HTMLOutputElement>("#score-value");
+  if (!canvas || !scoreValue) throw new Error("Game canvas could not be initialized.");
   const renderer = new CanvasRenderer(canvas);
   let gameState: GameState | undefined;
   const draw = (): void => {
@@ -220,11 +229,16 @@ async function renderGameplayCanvasPage(): Promise<void> {
 
   try {
     gameState = await gameApi.getGame(gameId);
+    scoreValue.textContent = formatScore(gameState.score);
     draw();
   } catch (error) {
     const label = app!.querySelector<HTMLElement>(".game-id-label");
     if (label) label.textContent = error instanceof ApiError ? error.message : "Game could not be loaded";
   }
+}
+
+function formatScore(score: number): string {
+  return String(Math.max(0, score)).padStart(4, "0");
 }
 
 function resizeCanvasForDisplay(canvas: HTMLCanvasElement): void {
