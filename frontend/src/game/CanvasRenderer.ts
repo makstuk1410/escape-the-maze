@@ -136,33 +136,37 @@ export class CanvasRenderer {
       }
     }
 
-    // Near maze boundaries the player moves away from the visual centre, like the JavaFX camera.
     const playerCenterX = originX + (playerX - startColumn + 0.5) * cellSize;
     const playerCenterY = originY + (playerY - startRow + 0.5) * cellSize;
-    const playerRadius = Math.max(5, cellSize * 0.28);
-    const playerGlow = context.createRadialGradient(
-      playerCenterX, playerCenterY, playerRadius * 0.25,
-      playerCenterX, playerCenterY, playerRadius * 1.8,
-    );
-    playerGlow.addColorStop(0, "rgb(0 225 255 / 72%)");
-    playerGlow.addColorStop(1, "rgb(0 165 222 / 0%)");
-    context.fillStyle = playerGlow;
+    this.drawPlayerSprite(playerCenterX, playerCenterY, cellSize);
+  }
+
+  /** Original browser-only maze runner sprite; no JavaFX asset is used. */
+  private drawPlayerSprite(centerX: number, centerY: number, cellSize: number): void {
+    const { context } = this;
+    const radius = cellSize * 0.29;
+    const glow = context.createRadialGradient(centerX, centerY, radius * 0.2, centerX, centerY, radius * 1.8);
+    glow.addColorStop(0, "rgb(0 229 255 / 70%)");
+    glow.addColorStop(1, "rgb(0 165 222 / 0%)");
+    context.fillStyle = glow;
     context.beginPath();
-    context.arc(playerCenterX, playerCenterY, playerRadius * 1.8, 0, Math.PI * 2);
+    context.arc(centerX, centerY, radius * 1.8, 0, Math.PI * 2);
     context.fill();
-    context.fillStyle = "#00A5DE";
+
+    const player = context.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+    player.addColorStop(0, "#56E2F5");
+    player.addColorStop(1, "#008BC4");
+    context.fillStyle = player;
     context.beginPath();
-    context.arc(
-      playerCenterX,
-      playerCenterY,
-      playerRadius,
-      0,
-      Math.PI * 2,
-    );
+    context.arc(centerX, centerY, radius, 0, Math.PI * 2);
     context.fill();
     context.strokeStyle = "#D9FAFF";
     context.lineWidth = Math.max(1, cellSize * 0.04);
     context.stroke();
+    context.fillStyle = "#0B4D73";
+    context.beginPath();
+    context.arc(centerX, centerY, radius * 0.25, 0, Math.PI * 2);
+    context.fill();
   }
 
   private drawWallTile(x: number, y: number, cellSize: number): void {
