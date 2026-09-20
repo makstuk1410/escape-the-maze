@@ -1,11 +1,15 @@
-import { ApiError, gameApi, leaderboardApi, type Difficulty, type GameState, type Level } from "./api";
+import { ApiError, apiClient, gameApi, leaderboardApi, type Difficulty, type GameState, type Level } from "./api";
 import { authState } from "./auth";
 import { CanvasRenderer } from "./game/CanvasRenderer";
+import { KeyboardInput } from "./input/KeyboardInput";
+import { GameSocket } from "./websocket/GameSocket";
 import "./styles/main.css";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 let canvasResizeObserver: ResizeObserver | undefined;
 let timerInterval: number | undefined;
+let keyboardInput: KeyboardInput | undefined;
+let gameSocket: GameSocket | undefined;
 
 if (!app) {
   throw new Error("Application root was not found.");
@@ -21,6 +25,10 @@ function renderCurrentPage(): void {
     window.clearInterval(timerInterval);
     timerInterval = undefined;
   }
+  keyboardInput?.stop();
+  keyboardInput = undefined;
+  gameSocket?.close();
+  gameSocket = undefined;
   if (window.location.hash === "#menu") {
     void renderMenuPage();
     return;
@@ -195,7 +203,7 @@ async function renderGameplayCanvasPage(): Promise<void> {
       <header class="gameplay-header">
         <div><p class="eyebrow">ESCAPE THE MAZE</p><h1>YOUR RUN</h1></div>
         <output class="timer-card" id="timer-value" aria-label="Time remaining">05:00</output>
-        <span class="game-id-label">11 × 11 viewport</span>
+        <span class="game-id-label" id="movement-status" aria-live="polite">WASD / arrows</span>
       </header>
       <section class="gameplay-layout" aria-label="Maze game area">
         <aside class="run-stats" aria-label="Run statistics">
@@ -221,7 +229,8 @@ async function renderGameplayCanvasPage(): Promise<void> {
   const healthHearts = app!.querySelector<HTMLOutputElement>("#health-hearts");
   const healthValue = app!.querySelector<HTMLOutputElement>("#health-value");
   const timerValue = app!.querySelector<HTMLOutputElement>("#timer-value");
-  if (!canvas || !scoreValue || !healthHearts || !healthValue || !timerValue) throw new Error("Game canvas could not be initialized.");
+  const movementStatus = app!.querySelector<HTMLElement>("#movement-status");
+  if (!canvas || !scoreValue || !healthHearts || !healthValue || !timerValue || !movementStatus) throw new Error("Game canvas could not be initialized.");
   const renderer = new CanvasRenderer(canvas);
   let gameState: GameState | undefined;
   const draw = (): void => {
@@ -240,6 +249,7 @@ async function renderGameplayCanvasPage(): Promise<void> {
   canvasResizeObserver = new ResizeObserver(draw);
   canvasResizeObserver.observe(canvas);
   draw();
+  movementStatus.textContent = "Connecting…";
 
   try {
     gameState = await gameApi.getGame(gameId);
@@ -247,6 +257,22 @@ async function renderGameplayCanvasPage(): Promise<void> {
     renderHealth(healthHearts, healthValue, gameState.player.health);
     startTimer(timerValue, gameState.endsAt);
     draw();
+    const accessToken = apiClient.getAccessToken();
+    if (!accessToken) throw new Error("Sign in again to connect to this game.");
+    const socket = new GameSocket();
+    gameSocket = socket;
+    await socket.connect(gameId, accessToken);
+    if (gameSocket !== socket) return;
+    movementStatus.textContent = "LIVE • WASD / arrows";
+    keyboardInput = new KeyboardInput((direction) => {
+      try {
+        socket.sendMove(direction);
+        movementStatus.textContent = `Sent: ${formatDirection(direction)}`;
+      } catch (error) {
+        movementStatus.textContent = error instanceof Error ? error.message : "Move was not sent.";
+      }
+    });
+    keyboardInput.start();
   } catch (error) {
     const label = app!.querySelector<HTMLElement>(".game-id-label");
     if (label) label.textContent = error instanceof ApiError ? error.message : "Game could not be loaded";
@@ -255,6 +281,10 @@ async function renderGameplayCanvasPage(): Promise<void> {
 
 function formatScore(score: number): string {
   return String(Math.max(0, score)).padStart(4, "0");
+}
+
+function formatDirection(direction: "UP" | "DOWN" | "LEFT" | "RIGHT"): string {
+  return direction.charAt(0) + direction.slice(1).toLowerCase();
 }
 
 function startTimer(element: HTMLOutputElement, endsAt: string): void {
