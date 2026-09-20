@@ -345,6 +345,53 @@ a:hover { text-decoration: underline; }
 .setup-message.is-error, .setup-load-error { color: #ff9b9b; }
 .setup-start-button { min-height: 58px; font-size: 1.0625rem; }
 
+.gameplay-page {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  background: var(--color-surface-background);
+}
+
+.gameplay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 96px;
+  padding: 20px max(24px, calc((100vw - 1312px) / 2));
+  border-bottom: 1px solid var(--color-surface-border);
+  background: var(--color-surface-default);
+}
+
+.gameplay-header h1 { margin-top: 4px; font-size: 1.375rem; letter-spacing: 0; }
+
+.game-id-label {
+  padding: 8px 12px;
+  border: 1px solid var(--color-surface-border);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  font-size: .8125rem;
+}
+
+.canvas-stage {
+  display: grid;
+  place-items: center;
+  width: min(100%, 900px);
+  min-height: 0;
+  margin: auto;
+  padding: clamp(16px, 3vw, 32px);
+}
+
+#game-canvas {
+  display: block;
+  width: min(100%, calc(100vh - 160px));
+  height: auto;
+  aspect-ratio: 1;
+  border: 1px solid var(--color-surface-border);
+  border-radius: 16px;
+  background: var(--color-surface-background);
+  image-rendering: pixelated;
+}
+
 @media (max-width: 920px) {
   .auth-page { grid-template-columns: 1fr; }
   .brand-panel { min-height: 330px; padding: 56px max(32px, 10vw); }
@@ -354,6 +401,7 @@ a:hover { text-decoration: underline; }
   .menu-content { padding: 56px max(32px, 10vw); }
   .setup-page { grid-template-columns: 1fr; }
   .setup-brand-panel, .setup-content { padding: 56px max(32px, 10vw); }
+  .gameplay-header { padding-inline: 32px; }
 }
 
 @media (max-width: 480px) {
@@ -367,4 +415,7 @@ a:hover { text-decoration: underline; }
   .menu-actions { grid-template-columns: 1fr; }
   .setup-brand-panel, .setup-content { padding: 40px 24px; }
   .difficulty-grid { grid-template-columns: 1fr; }
+  .gameplay-header { padding-inline: 16px; }
+  .game-id-label { display: none; }
+  #game-canvas { width: 100%; }
 }

@@ -1,5 +1,6 @@
 import { ApiError, gameApi, leaderboardApi, type Difficulty, type Level } from "./api";
 import { authState } from "./auth";
+import { CanvasRenderer } from "./game/CanvasRenderer";
 import "./styles/main.css";
 
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -18,6 +19,10 @@ function renderCurrentPage(): void {
   }
   if (window.location.hash === "#game-setup") {
     void renderGameSetupPage();
+    return;
+  }
+  if (window.location.hash === "#gameplay") {
+    renderGameplayCanvasPage();
     return;
   }
   if (window.location.hash === "#register") {
@@ -153,7 +158,7 @@ async function renderGameSetupPage(): Promise<void> {
       try {
         const game = await gameApi.createGame(selectedLevel.difficulty);
         window.sessionStorage.setItem("escape-the-maze.current-game-id", game.gameId);
-        message.textContent = "Maze created. The gameplay screen is the next step.";
+        window.location.hash = "#gameplay";
       } catch (error) {
         message.textContent = error instanceof ApiError ? error.message : "We could not create this game.";
         message.classList.add("is-error");
@@ -168,6 +173,30 @@ async function renderGameSetupPage(): Promise<void> {
     message.classList.add("is-error");
     startButton.textContent = "Levels unavailable";
   }
+}
+
+function renderGameplayCanvasPage(): void {
+  const gameId = window.sessionStorage.getItem("escape-the-maze.current-game-id");
+  if (!authState.isAuthenticated() || !gameId) {
+    window.location.hash = "#game-setup";
+    return;
+  }
+
+  app!.innerHTML = `
+    <main class="gameplay-page">
+      <header class="gameplay-header">
+        <div><p class="eyebrow">ESCAPE THE MAZE</p><h1>YOUR RUN</h1></div>
+        <span class="game-id-label">Game ready</span>
+      </header>
+      <section class="canvas-stage" aria-label="Maze game area">
+        <canvas id="game-canvas" width="720" height="720" aria-label="Maze game canvas"></canvas>
+      </section>
+    </main>
+  `;
+
+  const canvas = app!.querySelector<HTMLCanvasElement>("#game-canvas");
+  if (!canvas) throw new Error("Game canvas could not be initialized.");
+  new CanvasRenderer(canvas).renderPlaceholder();
 }
 
 async function renderMenuPage(): Promise<void> {
