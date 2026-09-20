@@ -22,7 +22,7 @@ function renderCurrentPage(): void {
     return;
   }
   if (window.location.hash === "#gameplay") {
-    renderGameplayCanvasPage();
+    void renderGameplayCanvasPage();
     return;
   }
   if (window.location.hash === "#register") {
@@ -175,7 +175,7 @@ async function renderGameSetupPage(): Promise<void> {
   }
 }
 
-function renderGameplayCanvasPage(): void {
+async function renderGameplayCanvasPage(): Promise<void> {
   const gameId = window.sessionStorage.getItem("escape-the-maze.current-game-id");
   if (!authState.isAuthenticated() || !gameId) {
     window.location.hash = "#game-setup";
@@ -186,7 +186,7 @@ function renderGameplayCanvasPage(): void {
     <main class="gameplay-page">
       <header class="gameplay-header">
         <div><p class="eyebrow">ESCAPE THE MAZE</p><h1>YOUR RUN</h1></div>
-        <span class="game-id-label">Game ready</span>
+        <span class="game-id-label">11 × 11 viewport</span>
       </header>
       <section class="canvas-stage" aria-label="Maze game area">
         <canvas id="game-canvas" width="720" height="720" aria-label="Maze game canvas"></canvas>
@@ -196,7 +196,21 @@ function renderGameplayCanvasPage(): void {
 
   const canvas = app!.querySelector<HTMLCanvasElement>("#game-canvas");
   if (!canvas) throw new Error("Game canvas could not be initialized.");
-  new CanvasRenderer(canvas).renderPlaceholder();
+  const renderer = new CanvasRenderer(canvas);
+  renderer.renderPlaceholder();
+
+  try {
+    const game = await gameApi.getGame(gameId);
+    renderer.renderViewport({
+      tiles: game.tiles,
+      playerX: game.player.x,
+      playerY: game.player.y,
+      size: 11,
+    });
+  } catch (error) {
+    const label = app!.querySelector<HTMLElement>(".game-id-label");
+    if (label) label.textContent = error instanceof ApiError ? error.message : "Game could not be loaded";
+  }
 }
 
 async function renderMenuPage(): Promise<void> {
