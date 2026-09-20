@@ -33,7 +33,7 @@ class GameWebSocketHandlerTest {
     @Test
     void routesAValidMoveToTheAuthenticatedOwnersGame() throws Exception {
         GameApplicationService gameApplicationService = mock(GameApplicationService.class);
-        GameWebSocketHandler handler = new GameWebSocketHandler(new ObjectMapper(), gameApplicationService);
+        GameWebSocketHandler handler = new GameWebSocketHandler(new ObjectMapper().findAndRegisterModules(), gameApplicationService);
         UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         WebSocketSession socketSession = authenticatedSession(userId, gameId);
@@ -44,6 +44,24 @@ class GameWebSocketHandlerTest {
                 """));
 
         verify(gameApplicationService).move(gameId, userId, Direction.LEFT);
+    }
+
+    @Test
+    void routesAValidJumpToTheAuthenticatedOwnersGame() throws Exception {
+        GameApplicationService gameApplicationService = mock(GameApplicationService.class);
+        GameWebSocketHandler handler = new GameWebSocketHandler(new ObjectMapper().findAndRegisterModules(), gameApplicationService);
+        UUID userId = UUID.randomUUID();
+        UUID gameId = UUID.randomUUID();
+        WebSocketSession socketSession = authenticatedSession(userId, gameId);
+        GameSession game = finishedGame();
+        when(gameApplicationService.getGame(gameId, userId)).thenReturn(game);
+        when(gameApplicationService.jump(gameId, userId, Direction.RIGHT)).thenReturn(game);
+
+        handler.handleTextMessage(socketSession, new TextMessage("""
+                {"type":"JUMP","commandId":"8e7d6cf1-4e8e-4b9d-b14c-58fdf10ad67f","direction":"RIGHT"}
+                """));
+
+        verify(gameApplicationService).jump(gameId, userId, Direction.RIGHT);
     }
 
     @Test

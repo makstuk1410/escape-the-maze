@@ -17,6 +17,9 @@ public interface GameApplicationService {
      */
     GameSession move(UUID gameId, UUID ownerUserId, Direction direction);
 
+    /** Applies one server-validated two-tile jump command. */
+    GameSession jump(UUID gameId, UUID ownerUserId, Direction direction);
+
     /** Returns an existing session only when it belongs to the requesting user. */
     GameSession getGame(UUID gameId, UUID ownerUserId);
 }

@@ -66,6 +66,7 @@ class GameControllerTest {
                 .hasFieldOrPropertyWithValue("status", GameStatus.RUNNING);
         assertThat(response.getBody().player()).isEqualTo(new GameStateResponse.PlayerResponse(1, 1, 100));
         assertThat(response.getBody().tiles()[1][1]).isEqualTo(TileType.EMPTY);
+        assertThat(response.getBody().effects()).isEqualTo(new GameStateResponse.Effects(null, null));
 
         verify(gameApplicationService).createGame(USER_ID, Difficulty.EASY);
     }

@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.util.UUID;
 
-/** One client request to move a player by one logical maze tile. */
+/** One client request to move one tile or jump two tiles in a direction. */
 public record MoveCommand(
-        @NotBlank @Pattern(regexp = "MOVE", message = "type must be MOVE") String type,
+        @NotBlank @Pattern(regexp = "MOVE|JUMP", message = "type must be MOVE or JUMP") String type,
         @NotNull UUID commandId,
         @NotNull Direction direction) {
 }

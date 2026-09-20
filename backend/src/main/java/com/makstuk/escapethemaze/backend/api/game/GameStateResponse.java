@@ -21,6 +21,7 @@ public record GameStateResponse(
         GameStatus status,
         Instant startedAt,
         Instant endsAt,
+        Effects effects,
         long stateVersion) {
 
     static GameStateResponse from(GameSession session) {
@@ -36,9 +37,13 @@ public record GameStateResponse(
                 session.getStatus(),
                 session.getStartedAt(),
                 session.getEndsAt(),
+                new Effects(session.getFrozenUntil(), session.getFogUntil()),
                 session.getStateVersion());
     }
 
     public record PlayerResponse(int x, int y, int health) {
+    }
+
+    public record Effects(Instant frozenUntil, Instant fogUntil) {
     }
 }

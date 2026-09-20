@@ -127,6 +127,26 @@ public class GameSession {
         return Optional.of(new Position(targetX, targetY));
     }
 
+    /**
+     * Returns a two-tile landing position for a jump. Both the crossed tile and landing tile
+     * must be walkable, so a jump can skip tile effects but cannot pass through a wall.
+     */
+    public Optional<Position> validJumpTarget(Direction direction) {
+        Objects.requireNonNull(direction, "direction must not be null");
+        if (!acceptsMovement()) {
+            return Optional.empty();
+        }
+
+        int crossedX = player.x() + direction.deltaX();
+        int crossedY = player.y() + direction.deltaY();
+        int landingX = crossedX + direction.deltaX();
+        int landingY = crossedY + direction.deltaY();
+        if (!isWalkable(crossedX, crossedY) || !isWalkable(landingX, landingY)) {
+            return Optional.empty();
+        }
+        return Optional.of(new Position(landingX, landingY));
+    }
+
     public void updatePlayer(PlayerState player) {
         this.player = Objects.requireNonNull(player, "player must not be null");
         transitionToLostIfHealthDepleted();
@@ -295,6 +315,10 @@ public class GameSession {
 
     private void incrementStateVersion() {
         stateVersion++;
+    }
+
+    private boolean isWalkable(int x, int y) {
+        return maze.isInBounds(x, y) && maze.tileAt(x, y).isWalkable();
     }
 
     private void transitionToLostIfHealthDepleted() {

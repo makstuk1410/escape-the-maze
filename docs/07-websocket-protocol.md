@@ -18,6 +18,7 @@
 | Type | Required fields | Purpose |
 |---|---|---|
 | `MOVE` | `commandId`, `direction` | Request one logical move. |
+| `JUMP` | `commandId`, `direction` | Request a two-tile jump over one walkable tile. |
 
 ### MOVE
 
@@ -28,6 +29,21 @@
   "direction": "RIGHT"
 }
 ```
+
+### JUMP
+
+```json
+{
+  "type": "JUMP",
+  "commandId": "1a2c4780-cc2c-431c-a3e8-8322f50c3c20",
+  "direction": "RIGHT"
+}
+```
+
+The server accepts a jump only when both the crossed tile and landing tile are
+inside the maze and walkable. The crossed tile's gold or hazard effect is not
+applied; the landing tile is processed normally. A jump cannot pass through a
+wall.
 
 `direction` must be one of `UP`, `DOWN`, `LEFT`, or `RIGHT`. The browser sends
 a requested direction only; it does not send player coordinates, health,

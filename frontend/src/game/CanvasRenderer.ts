@@ -5,6 +5,8 @@ export interface MazeViewport {
   tiles: TileType[][];
   playerX: number;
   playerY: number;
+  playerLift?: number;
+  fogIntensity?: number;
   size?: number;
 }
 
@@ -96,7 +98,7 @@ export class CanvasRenderer {
    * Draws a camera window into the full maze (11 × 11 by default).
    * At an edge, the camera stops at the real maze boundary instead of inventing walls.
    */
-  renderViewport({ tiles, playerX, playerY, size = 11 }: MazeViewport): void {
+  renderViewport({ tiles, playerX, playerY, playerLift = 0, fogIntensity = 0, size = 11 }: MazeViewport): void {
     if (size % 2 === 0) throw new Error("Maze viewport size must be odd.");
 
     const { canvas, context } = this;
@@ -106,8 +108,12 @@ export class CanvasRenderer {
 
     const visibleColumns = Math.min(size, mazeColumns);
     const visibleRows = Math.min(size, mazeRows);
-    const startColumn = clamp(playerX - Math.floor(size / 2), 0, mazeColumns - visibleColumns);
-    const startRow = clamp(playerY - Math.floor(size / 2), 0, mazeRows - visibleRows);
+    // Positions may be fractional while the player animation is running; the camera itself
+    // still anchors to a real grid cell so tile-array indexes always stay integers.
+    const cameraPlayerX = Math.round(playerX);
+    const cameraPlayerY = Math.round(playerY);
+    const startColumn = clamp(cameraPlayerX - Math.floor(size / 2), 0, mazeColumns - visibleColumns);
+    const startRow = clamp(cameraPlayerY - Math.floor(size / 2), 0, mazeRows - visibleRows);
     // Figma viewport: 660px maze floor in a 720px square, with 11 × 60px slots.
     const floorSize = Math.min(canvas.width, canvas.height) * (11 / 12);
     const cellSize = floorSize / size;
@@ -137,8 +143,9 @@ export class CanvasRenderer {
     }
 
     const playerCenterX = originX + (playerX - startColumn + 0.5) * cellSize;
-    const playerCenterY = originY + (playerY - startRow + 0.5) * cellSize;
+    const playerCenterY = originY + (playerY - startRow + 0.5) * cellSize - playerLift * cellSize;
     this.drawPlayerSprite(playerCenterX, playerCenterY, cellSize);
+    this.drawFogOverlay(fogIntensity, playerCenterX, playerCenterY, cellSize);
   }
 
   /** Original browser-only maze runner sprite; no JavaFX asset is used. */
@@ -176,6 +183,27 @@ export class CanvasRenderer {
     context.fillStyle = "#397FC1";
     this.roundedRect(x + inset, y + inset, size, size, cellSize * 0.075);
     context.fill();
+  }
+
+  /** One continuous fog layer with a soft reveal around the player—no segmented strips or seams. */
+  private drawFogOverlay(intensity: number, playerX: number, playerY: number, cellSize: number): void {
+    if (intensity <= 0) return;
+
+    const { canvas, context } = this;
+    const maximumRadius = Math.hypot(canvas.width, canvas.height);
+    const visibleRadiusAtFullFog = cellSize * 1.5;
+    const clearRadius = maximumRadius - (maximumRadius - visibleRadiusAtFullFog) * Math.min(1, intensity);
+    const fadeRadius = clearRadius + cellSize * 0.8;
+    const fog = context.createRadialGradient(playerX, playerY, 0, playerX, playerY, maximumRadius);
+    const clearStop = Math.min(1, clearRadius / maximumRadius);
+    const solidStop = Math.min(1, fadeRadius / maximumRadius);
+
+    fog.addColorStop(0, "rgb(102 109 111 / 0%)");
+    fog.addColorStop(clearStop, "rgb(102 109 111 / 0%)");
+    fog.addColorStop(solidStop, "rgb(102 109 111)");
+    fog.addColorStop(1, "rgb(102 109 111)");
+    context.fillStyle = fog;
+    context.fillRect(0, 0, canvas.width, canvas.height);
   }
 
   private drawSpecialTile(tile: TileType, x: number, y: number, cellSize: number): void {

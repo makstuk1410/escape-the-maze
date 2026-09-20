@@ -5,3 +5,11 @@ export interface MoveCommand {
   commandId: string;
   direction: import("../api/types").Direction;
 }
+
+export interface JumpCommand {
+  type: "JUMP";
+  commandId: string;
+  direction: import("../api/types").Direction;
+}
+
+export type GameCommand = MoveCommand | JumpCommand;

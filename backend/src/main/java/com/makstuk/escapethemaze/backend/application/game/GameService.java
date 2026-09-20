@@ -84,7 +84,7 @@ public class GameService implements GameApplicationService {
 
         synchronized (session) {
             Instant now = clock.instant();
-            if (session.timeoutIfExpired(now) || !session.acceptsMovement() || session.isFrozenAt(now)) {
+            if (session.timeoutIfExpired(now) || !session.acceptsMovement()) {
                 persistCompletedResult(session, now);
                 return session;
             }
@@ -95,6 +95,36 @@ public class GameService implements GameApplicationService {
             }
 
             session.updatePlayer(session.getPlayer().moveTo(target.get().x(), target.get().y()));
+            applyTileEffect(session, now);
+            persistCompletedResult(session, now);
+            return session;
+        }
+    }
+
+    /**
+     * Moves the player two walkable tiles in one direction. Effects on the crossed tile are
+     * intentionally skipped; effects on the landing tile are still applied.
+     */
+    @Override
+    public GameSession jump(UUID gameId, UUID ownerUserId, Direction direction) {
+        Objects.requireNonNull(gameId, "gameId must not be null");
+        Objects.requireNonNull(ownerUserId, "ownerUserId must not be null");
+        Objects.requireNonNull(direction, "direction must not be null");
+
+        GameSession session = getGame(gameId, ownerUserId);
+        synchronized (session) {
+            Instant now = clock.instant();
+            if (session.timeoutIfExpired(now) || !session.acceptsMovement()) {
+                persistCompletedResult(session, now);
+                return session;
+            }
+
+            Optional<Position> landing = session.validJumpTarget(direction);
+            if (landing.isEmpty()) {
+                return session;
+            }
+
+            session.updatePlayer(session.getPlayer().moveTo(landing.get().x(), landing.get().y()));
             applyTileEffect(session, now);
             persistCompletedResult(session, now);
             return session;

@@ -121,7 +121,7 @@ to the browser as simple JSON values.
 | `EMPTY` | Yes | No effect. |
 | `GOLD` | Yes | Add configured score once, then replace with `EMPTY`. |
 | `SPIKES` | Yes | Apply configured damage, subject to damage-cooldown rules. |
-| `FREEZE` | Yes | Set or extend `frozenUntil`. |
+| `FREEZE` | Yes | Set or extend `frozenUntil`; the browser slows movement animation until that time. |
 | `FOG` | Yes | Set or extend `fogUntil`. |
 | `EXIT` | Yes | Add exit score and set status to `WON`. |
 

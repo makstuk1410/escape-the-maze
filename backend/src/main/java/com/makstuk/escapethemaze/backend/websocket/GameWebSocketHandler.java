@@ -50,7 +50,9 @@ public class GameWebSocketHandler extends TextWebSocketHandler implements GameCo
         }
 
         TileType[][] tilesBeforeMove = gameApplicationService.getGame(gameId, user.id()).getMaze().getTiles();
-        GameSession updatedSession = gameApplicationService.move(gameId, user.id(), command.direction());
+        GameSession updatedSession = "JUMP".equals(command.type())
+                ? gameApplicationService.jump(gameId, user.id(), command.direction())
+                : gameApplicationService.move(gameId, user.id(), command.direction());
         if (updatedSession == null) {
             return;
         }
@@ -69,7 +71,9 @@ public class GameWebSocketHandler extends TextWebSocketHandler implements GameCo
     }
 
     private boolean isValid(MoveCommand command) {
-        return "MOVE".equals(command.type()) && command.commandId() != null && command.direction() != null;
+        return ("MOVE".equals(command.type()) || "JUMP".equals(command.type()))
+                && command.commandId() != null
+                && command.direction() != null;
     }
 
     private boolean isTerminal(GameStatus status) {

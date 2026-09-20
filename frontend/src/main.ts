@@ -2,14 +2,16 @@ import { ApiError, apiClient, gameApi, leaderboardApi, type Difficulty, type Gam
 import { authState } from "./auth";
 import { CanvasRenderer } from "./game/CanvasRenderer";
 import { KeyboardInput } from "./input/KeyboardInput";
-import { GameSocket } from "./websocket/GameSocket";
+import { GameSocket, type GameConnectionStatus } from "./websocket/GameSocket";
 import "./styles/main.css";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 let canvasResizeObserver: ResizeObserver | undefined;
 let timerInterval: number | undefined;
+let fogRefreshInterval: number | undefined;
 let keyboardInput: KeyboardInput | undefined;
 let gameSocket: GameSocket | undefined;
+let playerAnimationFrame: number | undefined;
 
 if (!app) {
   throw new Error("Application root was not found.");
@@ -25,10 +27,18 @@ function renderCurrentPage(): void {
     window.clearInterval(timerInterval);
     timerInterval = undefined;
   }
+  if (fogRefreshInterval !== undefined) {
+    window.clearInterval(fogRefreshInterval);
+    fogRefreshInterval = undefined;
+  }
   keyboardInput?.stop();
   keyboardInput = undefined;
   gameSocket?.close();
   gameSocket = undefined;
+  if (playerAnimationFrame !== undefined) {
+    window.cancelAnimationFrame(playerAnimationFrame);
+    playerAnimationFrame = undefined;
+  }
   if (window.location.hash === "#menu") {
     void renderMenuPage();
     return;
@@ -201,10 +211,20 @@ async function renderGameplayCanvasPage(): Promise<void> {
   app!.innerHTML = `
     <main class="gameplay-page">
       <header class="gameplay-header">
-        <div><p class="eyebrow">ESCAPE THE MAZE</p><h1>YOUR RUN</h1></div>
-        <output class="timer-card" id="timer-value" aria-label="Time remaining">05:00</output>
-        <span class="game-id-label" id="movement-status" aria-live="polite">WASD / arrows</span>
+        <div class="game-identity"><p>ESCAPE THE MAZE</p><span id="game-meta">LOADING RUN…</span></div>
+        <div class="gameplay-live-details">
+          <output class="timer-card" id="timer-value" aria-label="Time remaining">05:00</output>
+          <span class="connection-status is-connecting" id="connection-status" role="status" aria-live="polite">
+            <span class="connection-dot" aria-hidden="true"></span>
+            <span class="connection-status-label" id="connection-status-label">CONNECTING</span>
+          </span>
+        </div>
+        <div class="gameplay-actions">
+          <button class="pause-button" type="button" disabled aria-label="Pause is not available yet">Pause</button>
+          <span class="sr-only" id="movement-status" aria-live="polite">WASD / arrows • Space + direction jumps</span>
+        </div>
       </header>
+      <p class="connection-lost-banner" id="connection-lost-banner" role="alert"></p>
       <section class="gameplay-layout" aria-label="Maze game area">
         <aside class="run-stats" aria-label="Run statistics">
           <section class="score-card" aria-labelledby="score-label">
@@ -216,10 +236,37 @@ async function renderGameplayCanvasPage(): Promise<void> {
             <output class="health-hearts" id="health-hearts" aria-label="100 of 100 health"><span class="heart-filled">♥</span><span class="heart-filled">♥</span><span class="heart-filled">♥</span><span class="heart-filled">♥</span><span class="heart-filled">♥</span></output>
             <output class="health-value" id="health-value">100 / 100</output>
           </section>
+          <section class="controls-card" aria-labelledby="controls-label">
+            <p id="controls-label">CONTROLS</p>
+            <dl>
+              <div><dt>Move</dt><dd>WASD / arrows</dd></div>
+              <div><dt>Jump</dt><dd>Hold Space + direction</dd></div>
+            </dl>
+          </section>
         </aside>
         <section class="canvas-stage">
           <canvas id="game-canvas" width="720" height="720" aria-label="Maze game canvas"></canvas>
         </section>
+        <aside class="game-context" aria-label="Game information">
+          <section class="objective-card">
+            <p>OBJECTIVE</p>
+            <h2>Find the exit</h2>
+            <span>Reach the green exit before time runs out.</span>
+          </section>
+          <section class="effects-card">
+            <p>ACTIVE EFFECTS</p>
+            <output id="active-effects">No active effects</output>
+          </section>
+          <section class="tile-guide-card">
+            <p>TILE GUIDE</p>
+            <ul>
+              <li class="guide-gold">Gold <span>+10 points</span></li>
+              <li class="guide-spikes">Spikes <span>lose health</span></li>
+              <li class="guide-freeze">Freeze <span>movement slows</span></li>
+              <li class="guide-fog">Fog <span>vision reduces</span></li>
+            </ul>
+          </section>
+        </aside>
       </section>
     </main>
   `;
@@ -229,17 +276,28 @@ async function renderGameplayCanvasPage(): Promise<void> {
   const healthHearts = app!.querySelector<HTMLOutputElement>("#health-hearts");
   const healthValue = app!.querySelector<HTMLOutputElement>("#health-value");
   const timerValue = app!.querySelector<HTMLOutputElement>("#timer-value");
+  const gameMeta = app!.querySelector<HTMLElement>("#game-meta");
+  const activeEffects = app!.querySelector<HTMLOutputElement>("#active-effects");
   const movementStatus = app!.querySelector<HTMLElement>("#movement-status");
-  if (!canvas || !scoreValue || !healthHearts || !healthValue || !timerValue || !movementStatus) throw new Error("Game canvas could not be initialized.");
+  const connectionStatus = app!.querySelector<HTMLElement>("#connection-status");
+  const connectionStatusLabel = app!.querySelector<HTMLElement>("#connection-status-label");
+  const connectionLostBanner = app!.querySelector<HTMLElement>("#connection-lost-banner");
+  if (!canvas || !scoreValue || !healthHearts || !healthValue || !timerValue || !gameMeta || !activeEffects || !movementStatus || !connectionStatus || !connectionStatusLabel || !connectionLostBanner) throw new Error("Game canvas could not be initialized.");
   const renderer = new CanvasRenderer(canvas);
   let gameState: GameState | undefined;
+  let displayedPlayer: { x: number; y: number } | undefined;
+  let displayedPlayerLift = 0;
+  let movementInFlight = false;
+  let pendingJump = false;
   const draw = (): void => {
     resizeCanvasForDisplay(canvas);
     if (gameState) {
       renderer.renderViewport({
         tiles: gameState.tiles,
-        playerX: gameState.player.x,
-        playerY: gameState.player.y,
+        playerX: displayedPlayer?.x ?? gameState.player.x,
+        playerY: displayedPlayer?.y ?? gameState.player.y,
+        playerLift: displayedPlayerLift,
+        fogIntensity: fogIntensity(gameState.effects.fogUntil),
         size: 11,
       });
       return;
@@ -250,45 +308,142 @@ async function renderGameplayCanvasPage(): Promise<void> {
     if (!gameState) return;
     scoreValue.textContent = formatScore(gameState.score);
     renderHealth(healthHearts, healthValue, gameState.player.health);
+    gameMeta.textContent = `${gameState.difficulty}  •  ${gameState.generator} MAZE`;
+    activeEffects.textContent = activeEffectsLabel(gameState.effects);
     draw();
+  };
+  const animatePlayerTo = (target: { x: number; y: number }, isJump: boolean): void => {
+    const start = displayedPlayer ?? target;
+    if (start.x === target.x && start.y === target.y) {
+      displayedPlayer = target;
+      displayedPlayerLift = 0;
+      draw();
+      return;
+    }
+
+    if (playerAnimationFrame !== undefined) {
+      window.cancelAnimationFrame(playerAnimationFrame);
+    }
+
+    const startedAt = performance.now();
+    const frozen = isFrozen(gameState?.effects.frozenUntil ?? null);
+    const movementDurationMs = frozen ? 550 : 150;
+    const durationMs = isJump ? movementDurationMs + 110 : movementDurationMs;
+    const animate = (now: number): void => {
+      const progress = Math.min(1, (now - startedAt) / durationMs);
+      const easedProgress = 1 - (1 - progress) ** 3;
+      displayedPlayer = {
+        x: start.x + (target.x - start.x) * easedProgress,
+        y: start.y + (target.y - start.y) * easedProgress,
+      };
+      displayedPlayerLift = isJump ? Math.sin(progress * Math.PI) * 0.35 : 0;
+      draw();
+
+      if (progress < 1) {
+        playerAnimationFrame = window.requestAnimationFrame(animate);
+        return;
+      }
+
+      displayedPlayer = target;
+      displayedPlayerLift = 0;
+      playerAnimationFrame = undefined;
+      draw();
+    };
+    playerAnimationFrame = window.requestAnimationFrame(animate);
   };
   canvasResizeObserver = new ResizeObserver(draw);
   canvasResizeObserver.observe(canvas);
+  fogRefreshInterval = window.setInterval(() => {
+    if (gameState) {
+      activeEffects.textContent = activeEffectsLabel(gameState.effects);
+      if (fogIntensity(gameState.effects.fogUntil) > 0) {
+        draw();
+      }
+    }
+  }, 50);
   draw();
   movementStatus.textContent = "Connecting…";
 
   try {
     gameState = await gameApi.getGame(gameId);
+    displayedPlayer = { ...gameState.player };
     renderGameState();
     startTimer(timerValue, gameState.endsAt);
     const accessToken = apiClient.getAccessToken();
     if (!accessToken) throw new Error("Sign in again to connect to this game.");
     const socket = new GameSocket();
     gameSocket = socket;
-    await socket.connect(gameId, accessToken, (state) => {
-      if (!gameState || state.stateVersion <= gameState.stateVersion) return;
-      gameState = applyStateUpdate(gameState, state);
-      renderGameState();
+    socket.connect(gameId, accessToken, {
+      onState: (state) => {
+        const wasJump = pendingJump;
+        movementInFlight = false;
+        pendingJump = false;
+        if (!gameState || state.stateVersion <= gameState.stateVersion) return;
+        gameState = applyStateUpdate(gameState, state);
+        renderGameState();
+        animatePlayerTo(gameState.player, wasJump);
+      },
+      onConnectionStatus: (status) => {
+        renderConnectionStatus(status, connectionStatus, connectionStatusLabel, connectionLostBanner);
+        if (status === "LIVE") {
+          movementStatus.textContent = "LIVE • Space + direction jumps";
+        } else {
+          movementInFlight = false;
+          movementStatus.textContent = "Movement paused";
+        }
+      },
     });
     if (gameSocket !== socket) return;
-    movementStatus.textContent = "LIVE • WASD / arrows";
-    keyboardInput = new KeyboardInput((direction) => {
+    keyboardInput = new KeyboardInput(({ direction, jump }) => {
+      if (movementInFlight || playerAnimationFrame !== undefined) {
+        movementStatus.textContent = "Finishing move…";
+        return;
+      }
       try {
-        socket.sendMove(direction);
-        movementStatus.textContent = `Sent: ${formatDirection(direction)}`;
+        if (jump) {
+          socket.sendJump(direction);
+        } else {
+          socket.sendMove(direction);
+        }
+        movementInFlight = true;
+        pendingJump = jump;
+        movementStatus.textContent = jump ? `Jumping: ${formatDirection(direction)}` : `Sent: ${formatDirection(direction)}`;
       } catch (error) {
         movementStatus.textContent = error instanceof Error ? error.message : "Move was not sent.";
       }
     });
     keyboardInput.start();
   } catch (error) {
-    const label = app!.querySelector<HTMLElement>(".game-id-label");
-    if (label) label.textContent = error instanceof ApiError ? error.message : "Game could not be loaded";
+    movementStatus.textContent = error instanceof ApiError ? error.message : "Game could not be loaded";
   }
 }
 
 function formatScore(score: number): string {
   return String(Math.max(0, score)).padStart(4, "0");
+}
+
+function renderConnectionStatus(
+  status: GameConnectionStatus,
+  statusElement: HTMLElement,
+  labelElement: HTMLElement,
+  bannerElement: HTMLElement,
+): void {
+  statusElement.className = `connection-status is-${status.toLowerCase()}`;
+  labelElement.textContent = status === "LIVE"
+    ? "LIVE"
+    : status === "LOST"
+      ? "OFFLINE"
+      : status === "CONNECTING"
+        ? "CONNECTING"
+        : "RECONNECTING";
+
+  const showBanner = status === "LOST" || status === "RECONNECTING";
+  bannerElement.classList.toggle("is-visible", showBanner);
+  bannerElement.textContent = status === "LOST"
+    ? "Connection lost. Reconnecting…"
+    : status === "RECONNECTING"
+      ? "Reconnecting to your game…"
+      : "";
 }
 
 function applyStateUpdate(current: GameState, state: StateMessage): GameState {
@@ -303,8 +458,31 @@ function applyStateUpdate(current: GameState, state: StateMessage): GameState {
     score: state.score,
     status: state.status,
     endsAt: state.endsAt,
+    effects: state.effects,
     stateVersion: state.stateVersion,
   };
+}
+
+function fogIntensity(fogUntil: string | null): number {
+  if (!fogUntil) return 0;
+
+  const durationMs = 4_000;
+  const elapsed = 1 - Math.max(0, new Date(fogUntil).getTime() - Date.now()) / durationMs;
+  if (elapsed <= 0 || elapsed >= 1) return 0;
+  if (elapsed < 0.25) return elapsed / 0.25;
+  if (elapsed > 0.75) return (1 - elapsed) / 0.25;
+  return 1;
+}
+
+function isFrozen(frozenUntil: string | null): boolean {
+  return frozenUntil !== null && new Date(frozenUntil).getTime() > Date.now();
+}
+
+function activeEffectsLabel(effects: GameState["effects"]): string {
+  const active: string[] = [];
+  if (isFrozen(effects.frozenUntil)) active.push("Freeze — movement slowed");
+  if (fogIntensity(effects.fogUntil) > 0) active.push("Fog — vision reduced");
+  return active.length === 0 ? "No active effects" : active.join(" • ");
 }
 
 function formatDirection(direction: "UP" | "DOWN" | "LEFT" | "RIGHT"): string {

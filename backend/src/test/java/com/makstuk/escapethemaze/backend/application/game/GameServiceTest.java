@@ -101,6 +101,24 @@ class GameServiceTest {
     }
 
     @Test
+    void jumpsOverSpikesAndAppliesOnlyTheLandingTileRule() {
+        GameService gameService = gameService();
+        UUID ownerUserId = UUID.randomUUID();
+        var session = gameService.createGame(ownerUserId, Difficulty.EASY);
+        int x = session.getPlayer().x();
+        int crossedY = session.getPlayer().y() + 1;
+        int landingY = session.getPlayer().y() + 2;
+        session.getMaze().replaceTile(x, crossedY, TileType.SPIKES);
+        session.getMaze().replaceTile(x, landingY, TileType.EMPTY);
+
+        var result = gameService.jump(session.getId(), ownerUserId, Direction.DOWN);
+
+        assertThat(result.getPlayer()).hasFieldOrPropertyWithValue("x", x)
+                .hasFieldOrPropertyWithValue("y", landingY)
+                .hasFieldOrPropertyWithValue("health", 100);
+    }
+
+    @Test
     void rejectsCommandsForAnotherUsersSession() {
         GameService gameService = gameService();
         var session = gameService.createGame(UUID.randomUUID(), Difficulty.EASY);
@@ -137,18 +155,21 @@ class GameServiceTest {
     }
 
     @Test
-    void freezesFurtherMovementAfterMovingOntoFreeze() {
+    void keepsMovementAvailableAfterMovingOntoFreeze() {
         GameService gameService = gameService();
         UUID ownerUserId = UUID.randomUUID();
         var session = gameService.createGame(ownerUserId, Difficulty.EASY);
+        int x = session.getPlayer().x();
+        int freezeY = session.getPlayer().y() + 1;
         makeDownTile(session, TileType.FREEZE);
+        session.getMaze().replaceTile(x + 1, freezeY, TileType.EMPTY);
 
         var frozenSession = gameService.move(session.getId(), ownerUserId, Direction.DOWN);
-        var frozenPlayer = frozenSession.getPlayer();
         var result = gameService.move(session.getId(), ownerUserId, Direction.RIGHT);
 
         assertThat(frozenSession.getFrozenUntil()).isNotNull();
-        assertThat(result.getPlayer()).isEqualTo(frozenPlayer);
+        assertThat(result.getPlayer()).hasFieldOrPropertyWithValue("x", x + 1)
+                .hasFieldOrPropertyWithValue("y", freezeY);
     }
 
     @Test

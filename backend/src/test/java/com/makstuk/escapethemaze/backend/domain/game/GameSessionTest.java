@@ -58,6 +58,23 @@ class GameSessionTest {
     }
 
     @Test
+    void allowsJumpingOverAWalkableHazardButNotThroughAWall() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.NORMAL,
+                jumpMaze(),
+                new PlayerState(1, 1),
+                startedAt,
+                startedAt.plusSeconds(300));
+
+        assertThat(session.validJumpTarget(Direction.RIGHT)).contains(new Position(3, 1));
+        session.getMaze().replaceTile(2, 1, TileType.WALL);
+        assertThat(session.validJumpTarget(Direction.RIGHT)).isEmpty();
+    }
+
+    @Test
     void collectsGoldOnceAndReplacesTheTileWithEmpty() {
         Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
         GameSession session = new GameSession(
@@ -264,6 +281,17 @@ class GameSessionTest {
             {TileType.WALL, TileType.EXIT, TileType.WALL}
         };
         return new Maze(tiles, new Position(1, 1), new Position(1, 3), GeneratorType.PRIM);
+    }
+
+    private Maze jumpMaze() {
+        TileType[][] tiles = {
+            {TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL},
+            {TileType.WALL, TileType.EMPTY, TileType.SPIKES, TileType.EMPTY, TileType.WALL},
+            {TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL},
+            {TileType.WALL, TileType.EMPTY, TileType.EMPTY, TileType.EXIT, TileType.WALL},
+            {TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL}
+        };
+        return new Maze(tiles, new Position(1, 1), new Position(3, 3), GeneratorType.DFS);
     }
 
     private Maze spikeMaze() {

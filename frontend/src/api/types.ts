@@ -66,6 +66,7 @@ export interface GameState {
   status: GameStatus;
   startedAt: string;
   endsAt: string;
+  effects: { frozenUntil: string | null; fogUntil: string | null };
   stateVersion: number;
 }
 

@@ -42,10 +42,10 @@ public final class GameRules {
     /** Number of non-exit special tiles placed in each newly generated maze. */
     public static SpecialTileCounts specialTileCountsFor(Difficulty difficulty) {
         return switch (difficulty) {
-            case EASY -> new SpecialTileCounts(3, 1, 0, 0);
-            case NORMAL -> new SpecialTileCounts(5, 2, 1, 1);
-            case HARD -> new SpecialTileCounts(7, 4, 2, 2);
-            case EXPERT -> new SpecialTileCounts(10, 6, 3, 3);
+            case EASY -> new SpecialTileCounts(8, 3, 1, 1);
+            case NORMAL -> new SpecialTileCounts(14, 7, 3, 3);
+            case HARD -> new SpecialTileCounts(22, 12, 5, 5);
+            case EXPERT -> new SpecialTileCounts(35, 20, 9, 9);
         };
     }
 

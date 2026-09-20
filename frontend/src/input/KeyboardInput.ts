@@ -1,5 +1,10 @@
 import type { Direction } from "../types/game";
 
+export interface KeyboardCommand {
+  direction: Direction;
+  jump: boolean;
+}
+
 const directionByKey: Record<string, Direction | undefined> = {
   ArrowUp: "UP",
   w: "UP",
@@ -16,7 +21,15 @@ const directionByKey: Record<string, Direction | undefined> = {
 };
 
 export class KeyboardInput {
+  private jumpHeld = false;
+
   private readonly onKeyDown = (event: KeyboardEvent): void => {
+    if (event.code === "Space") {
+      this.jumpHeld = true;
+      event.preventDefault();
+      return;
+    }
+
     const direction = directionByKey[event.key];
 
     if (!direction) {
@@ -24,17 +37,27 @@ export class KeyboardInput {
     }
 
     event.preventDefault();
-    this.onMove(direction);
+    this.onCommand({ direction, jump: this.jumpHeld });
   };
 
-  constructor(private readonly onMove: (direction: Direction) => void) {
+  private readonly onKeyUp = (event: KeyboardEvent): void => {
+    if (event.code === "Space") {
+      this.jumpHeld = false;
+      event.preventDefault();
+    }
+  };
+
+  constructor(private readonly onCommand: (command: KeyboardCommand) => void) {
   }
 
   start(): void {
     window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
   }
 
   stop(): void {
     window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
+    this.jumpHeld = false;
   }
 }
