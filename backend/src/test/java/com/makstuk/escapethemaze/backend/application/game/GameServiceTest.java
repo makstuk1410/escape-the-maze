@@ -43,6 +43,13 @@ class GameServiceTest {
             assertThat(session.getPlayer().y()).isEqualTo(session.getMaze().getStart().y());
             assertThat(session.getMaze().tileAt(
                     session.getMaze().getExit().x(), session.getMaze().getExit().y())).isEqualTo(TileType.EXIT);
+            var specialTiles = GameRules.specialTileCountsFor(difficulty);
+            assertThat(countTiles(session, TileType.GOLD)).isEqualTo(specialTiles.gold());
+            assertThat(countTiles(session, TileType.SPIKES)).isEqualTo(specialTiles.spikes());
+            assertThat(countTiles(session, TileType.FREEZE)).isEqualTo(specialTiles.freeze());
+            assertThat(countTiles(session, TileType.FOG)).isEqualTo(specialTiles.fog());
+            assertThat(session.getMaze().tileAt(
+                    session.getMaze().getStart().x(), session.getMaze().getStart().y())).isEqualTo(TileType.EMPTY);
             assertThat(gameService.getGame(session.getId(), ownerUserId)).isSameAs(session);
         }
     }
@@ -63,6 +70,18 @@ class GameServiceTest {
                 .hasFieldOrPropertyWithValue("y", targetY);
         assertThat(result.getScore()).isEqualTo(GameRules.GOLD_SCORE);
         assertThat(result.getMaze().tileAt(targetX, targetY)).isEqualTo(TileType.EMPTY);
+    }
+
+    private int countTiles(GameSession session, TileType tileType) {
+        int count = 0;
+        for (TileType[] row : session.getMaze().getTiles()) {
+            for (TileType tile : row) {
+                if (tile == tileType) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     @Test

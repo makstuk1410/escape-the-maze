@@ -1,9 +1,10 @@
-import { ApiError, gameApi, leaderboardApi, type Difficulty, type Level } from "./api";
+import { ApiError, gameApi, leaderboardApi, type Difficulty, type GameState, type Level } from "./api";
 import { authState } from "./auth";
 import { CanvasRenderer } from "./game/CanvasRenderer";
 import "./styles/main.css";
 
 const app = document.querySelector<HTMLDivElement>("#app");
+let canvasResizeObserver: ResizeObserver | undefined;
 
 if (!app) {
   throw new Error("Application root was not found.");
@@ -13,6 +14,8 @@ window.addEventListener("hashchange", renderCurrentPage);
 void authState.restore().then(renderCurrentPage);
 
 function renderCurrentPage(): void {
+  canvasResizeObserver?.disconnect();
+  canvasResizeObserver = undefined;
   if (window.location.hash === "#menu") {
     void renderMenuPage();
     return;
@@ -197,19 +200,41 @@ async function renderGameplayCanvasPage(): Promise<void> {
   const canvas = app!.querySelector<HTMLCanvasElement>("#game-canvas");
   if (!canvas) throw new Error("Game canvas could not be initialized.");
   const renderer = new CanvasRenderer(canvas);
-  renderer.renderPlaceholder();
+  let gameState: GameState | undefined;
+  const draw = (): void => {
+    resizeCanvasForDisplay(canvas);
+    if (gameState) {
+      renderer.renderViewport({
+        tiles: gameState.tiles,
+        playerX: gameState.player.x,
+        playerY: gameState.player.y,
+        size: 11,
+      });
+      return;
+    }
+    renderer.renderPlaceholder();
+  };
+  canvasResizeObserver = new ResizeObserver(draw);
+  canvasResizeObserver.observe(canvas);
+  draw();
 
   try {
-    const game = await gameApi.getGame(gameId);
-    renderer.renderViewport({
-      tiles: game.tiles,
-      playerX: game.player.x,
-      playerY: game.player.y,
-      size: 11,
-    });
+    gameState = await gameApi.getGame(gameId);
+    draw();
   } catch (error) {
     const label = app!.querySelector<HTMLElement>(".game-id-label");
     if (label) label.textContent = error instanceof ApiError ? error.message : "Game could not be loaded";
+  }
+}
+
+function resizeCanvasForDisplay(canvas: HTMLCanvasElement): void {
+  const bounds = canvas.getBoundingClientRect();
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const width = Math.max(1, Math.round(bounds.width * devicePixelRatio));
+  const height = Math.max(1, Math.round(bounds.height * devicePixelRatio));
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
   }
 }
 

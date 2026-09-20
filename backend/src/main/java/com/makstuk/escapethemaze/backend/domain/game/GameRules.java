@@ -38,4 +38,17 @@ public final class GameRules {
     public static int mazeHeightFor(Difficulty difficulty) {
         return mazeWidthFor(difficulty);
     }
+
+    /** Number of non-exit special tiles placed in each newly generated maze. */
+    public static SpecialTileCounts specialTileCountsFor(Difficulty difficulty) {
+        return switch (difficulty) {
+            case EASY -> new SpecialTileCounts(3, 1, 0, 0);
+            case NORMAL -> new SpecialTileCounts(5, 2, 1, 1);
+            case HARD -> new SpecialTileCounts(7, 4, 2, 2);
+            case EXPERT -> new SpecialTileCounts(10, 6, 3, 3);
+        };
+    }
+
+    public record SpecialTileCounts(int gold, int spikes, int freeze, int fog) {
+    }
 }
