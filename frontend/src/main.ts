@@ -1,7 +1,10 @@
+import { authState } from "./auth";
 import { CanvasRenderer } from "./game/CanvasRenderer";
 import { KeyboardInput } from "./input/KeyboardInput";
 import { plannedViews } from "./views";
 import "./styles/main.css";
+
+void authState.restore();
 
 const app = document.querySelector<HTMLDivElement>("#app");
 

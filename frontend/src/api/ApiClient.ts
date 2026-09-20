@@ -30,6 +30,10 @@ export class ApiClient {
     this.accessToken = undefined;
   }
 
+  getAccessToken(): string | undefined {
+    return this.accessToken;
+  }
+
   async get<T>(path: string, options: Omit<ApiRequestOptions, "method"> = {}): Promise<T> {
     return this.request<T>(path, { ...options, method: "GET" });
   }
