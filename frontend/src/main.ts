@@ -1,4 +1,4 @@
-import { ApiError, apiClient, gameApi, leaderboardApi, type Difficulty, type GameState, type Level, type StateMessage } from "./api";
+import { ApiError, apiClient, gameApi, leaderboardApi, type Difficulty, type GameState, type LeaderboardEntry, type Level, type StateMessage } from "./api";
 import { authState } from "./auth";
 import { CanvasRenderer } from "./game/CanvasRenderer";
 import { KeyboardInput } from "./input/KeyboardInput";
@@ -54,6 +54,10 @@ function renderCurrentPage(): void {
   }
   if (window.location.hash === "#gameplay") {
     void renderGameplayCanvasPage();
+    return;
+  }
+  if (window.location.hash === "#leaderboard") {
+    void renderLeaderboardPage();
     return;
   }
   if (window.location.hash === "#register") {
@@ -742,6 +746,84 @@ async function renderMenuPage(): Promise<void> {
       .map((difficulty) => bestScoreCell(difficulty, "—"))
       .join("");
   }
+}
+
+async function renderLeaderboardPage(): Promise<void> {
+  if (!authState.isAuthenticated()) {
+    window.location.hash = "#login";
+    return;
+  }
+
+  const user = authState.getSnapshot().user;
+  const difficulties: Difficulty[] = ["EASY", "NORMAL", "HARD", "EXPERT"];
+  let selectedDifficulty: Difficulty = "NORMAL";
+
+  app!.innerHTML = `
+    <main class="leaderboard-page">
+      <header class="leaderboard-top-bar">
+        <div class="leaderboard-identity">
+          <p>ESCAPE THE MAZE</p>
+          <span>GLOBAL RANKINGS</span>
+        </div>
+        <a class="leaderboard-back-button" href="#menu">Back to menu</a>
+      </header>
+      <section class="leaderboard-content" aria-labelledby="leaderboard-heading">
+        <header class="leaderboard-heading">
+          <h1 id="leaderboard-heading">Leaderboard</h1>
+          <p>Scores are ranked separately for each difficulty and use server-verified victories.</p>
+        </header>
+        <div class="leaderboard-tabs" role="tablist" aria-label="Choose leaderboard difficulty">
+          ${difficulties.map((difficulty) => `<button class="leaderboard-tab${difficulty === selectedDifficulty ? " is-selected" : ""}" type="button" role="tab" data-leaderboard-difficulty="${difficulty}" aria-selected="${difficulty === selectedDifficulty}">${difficulty}</button>`).join("")}
+        </div>
+        <section class="leaderboard-table-card" aria-live="polite">
+          <div class="leaderboard-table-header" aria-hidden="true"><span>RANK</span><span>PLAYER</span><span>SCORE</span><span>RESULT</span></div>
+          <div class="leaderboard-rows" id="leaderboard-rows"><p class="leaderboard-message">Loading ${formatDifficulty(selectedDifficulty)} rankings…</p></div>
+        </section>
+      </section>
+    </main>
+  `;
+
+  const rows = app!.querySelector<HTMLDivElement>("#leaderboard-rows");
+  const tabs = app!.querySelectorAll<HTMLButtonElement>("[data-leaderboard-difficulty]");
+  if (!rows || !user) return;
+
+  const renderSelectedDifficulty = async (): Promise<void> => {
+    rows.innerHTML = `<p class="leaderboard-message">Loading ${formatDifficulty(selectedDifficulty)} rankings…</p>`;
+    try {
+      const leaderboard = await leaderboardApi.getLeaderboard(selectedDifficulty);
+      if (leaderboard.difficulty !== selectedDifficulty) return;
+      rows.innerHTML = leaderboard.entries.length === 0
+        ? `<p class="leaderboard-message">No verified victories yet. Be the first to escape this maze.</p>`
+        : leaderboard.entries.map((entry, index) => leaderboardRow(entry, index + 1, entry.username === user.username)).join("");
+    } catch (error) {
+      rows.innerHTML = `<p class="leaderboard-message is-error">${escapeHtml(error instanceof ApiError ? error.message : "Rankings could not be loaded. Please try again.")}</p>`;
+    }
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      selectedDifficulty = tab.dataset.leaderboardDifficulty as Difficulty;
+      tabs.forEach((button) => {
+        const selected = button === tab;
+        button.classList.toggle("is-selected", selected);
+        button.setAttribute("aria-selected", String(selected));
+      });
+      void renderSelectedDifficulty();
+    });
+  });
+
+  await renderSelectedDifficulty();
+}
+
+function leaderboardRow(entry: LeaderboardEntry, rank: number, isCurrentUser: boolean): string {
+  return `
+    <article class="leaderboard-row${isCurrentUser ? " is-current-user" : ""}">
+      <span>#${rank}</span>
+      <span>${escapeHtml(entry.username)}${isCurrentUser ? " <em>(you)</em>" : ""}</span>
+      <strong>${entry.score.toLocaleString("en-US")}</strong>
+      <span>Completed</span>
+    </article>
+  `;
 }
 
 async function loadPersonalBestScores(username: string): Promise<Record<Difficulty, number>> {

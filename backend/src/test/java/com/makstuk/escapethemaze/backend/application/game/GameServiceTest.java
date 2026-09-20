@@ -48,6 +48,7 @@ class GameServiceTest {
             assertThat(countTiles(session, TileType.SPIKES)).isEqualTo(specialTiles.spikes());
             assertThat(countTiles(session, TileType.FREEZE)).isEqualTo(specialTiles.freeze());
             assertThat(countTiles(session, TileType.FOG)).isEqualTo(specialTiles.fog());
+            assertEverySpecialTileCanBeJumpedOver(session);
             assertThat(session.getMaze().tileAt(
                     session.getMaze().getStart().x(), session.getMaze().getStart().y())).isEqualTo(TileType.EMPTY);
             assertThat(gameService.getGame(session.getId(), ownerUserId)).isSameAs(session);
@@ -82,6 +83,30 @@ class GameServiceTest {
             }
         }
         return count;
+    }
+
+    private void assertEverySpecialTileCanBeJumpedOver(GameSession session) {
+        TileType[][] tiles = session.getMaze().getTiles();
+        for (int y = 0; y < tiles.length; y++) {
+            for (int x = 0; x < tiles[y].length; x++) {
+                if (tiles[y][x] == TileType.GOLD
+                        || tiles[y][x] == TileType.SPIKES
+                        || tiles[y][x] == TileType.FREEZE
+                        || tiles[y][x] == TileType.FOG) {
+                    boolean horizontalJump = isWalkable(tiles, x - 1, y) && isWalkable(tiles, x + 1, y);
+                    boolean verticalJump = isWalkable(tiles, x, y - 1) && isWalkable(tiles, x, y + 1);
+                    assertThat(horizontalJump || verticalJump)
+                            .as("special tile at (%s, %s) must have a valid jump path", x, y)
+                            .isTrue();
+                }
+            }
+        }
+    }
+
+    private boolean isWalkable(TileType[][] tiles, int x, int y) {
+        return y >= 0 && y < tiles.length
+                && x >= 0 && x < tiles[y].length
+                && tiles[y][x].isWalkable();
     }
 
     @Test

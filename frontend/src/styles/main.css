@@ -268,6 +268,111 @@ a:hover { text-decoration: underline; }
 .logout-action { cursor: pointer; background: var(--color-surface-background); font: inherit; }
 .menu-action:hover { border-color: var(--color-action-primary); text-decoration: none; }
 
+.leaderboard-page { min-height: 100vh; background: var(--color-surface-background); }
+
+.leaderboard-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 96px;
+  padding: 20px clamp(32px, 4.45vw, 64px);
+  border-bottom: 1px solid #000;
+  background: var(--color-surface-default);
+}
+
+.leaderboard-identity { display: grid; gap: 4px; }
+.leaderboard-identity p { color: var(--color-text-primary); font-size: 1.125rem; font-weight: 700; }
+.leaderboard-identity span { color: var(--color-action-primary); font-size: .6875rem; font-weight: 600; letter-spacing: .11em; }
+
+.leaderboard-back-button {
+  display: grid;
+  place-items: center;
+  width: 136px;
+  min-height: 44px;
+  border: 1px solid #000;
+  border-radius: 12px;
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  font-size: .875rem;
+  font-weight: 600;
+}
+
+.leaderboard-back-button:hover { border-color: var(--color-action-primary); text-decoration: none; }
+
+.leaderboard-content {
+  display: grid;
+  align-content: start;
+  gap: 28px;
+  width: min(1152px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 56px 0;
+}
+
+.leaderboard-heading { display: grid; gap: 6px; min-height: 82px; }
+.leaderboard-heading h1 { margin: 0; font-size: 2rem; letter-spacing: 0; line-height: 1.25; }
+.leaderboard-heading p { color: var(--color-text-secondary); font-size: .9375rem; line-height: 1.47; }
+
+.leaderboard-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+
+.leaderboard-tab {
+  min-height: 50px;
+  border: 1px solid #000;
+  border-radius: 12px;
+  background: var(--color-surface-background);
+  color: var(--color-text-primary);
+  font-size: .9375rem;
+  font-weight: 600;
+}
+
+.leaderboard-tab:hover { border-color: var(--color-action-primary); }
+.leaderboard-tab.is-selected { border: 2px solid var(--color-action-primary); background: var(--color-surface-hover); color: var(--color-action-primary); }
+
+.leaderboard-table-card {
+  display: grid;
+  gap: 6px;
+  min-height: 430px;
+  padding: 20px 24px;
+  border: 1px solid #000;
+  border-radius: 20px;
+  background: var(--color-surface-hover);
+}
+
+.leaderboard-table-header,
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 92px minmax(180px, 1fr) 180px 160px;
+  align-items: center;
+  gap: 0;
+  padding: 0 16px;
+}
+
+.leaderboard-table-header {
+  min-height: 40px;
+  color: var(--color-text-secondary);
+  font-size: .6875rem;
+  font-weight: 600;
+}
+
+.leaderboard-rows { display: grid; align-content: start; gap: 6px; max-height: 486px; overflow-y: auto; }
+
+.leaderboard-row {
+  min-height: 62px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--color-surface-background);
+  color: var(--color-text-primary);
+  font-size: .9375rem;
+  font-weight: 500;
+}
+
+.leaderboard-row strong { color: var(--color-game-gold); font-size: .9375rem; }
+.leaderboard-row span:last-child { color: var(--color-text-secondary); font-size: .875rem; }
+.leaderboard-row em { color: var(--color-text-primary); font-style: normal; }
+.leaderboard-row.is-current-user { border-color: var(--color-action-primary); font-weight: 600; }
+
+.leaderboard-message { padding: 32px 16px; color: var(--color-text-secondary); font-size: .9375rem; text-align: center; }
+.leaderboard-message.is-error { color: #f05252; }
+
 .setup-page {
   display: grid;
   grid-template-columns: minmax(320px, .42fr) minmax(0, 1fr);
@@ -761,6 +866,9 @@ a:hover { text-decoration: underline; }
   .setup-page { grid-template-columns: 1fr; }
   .setup-brand-panel, .setup-content { padding: 56px max(32px, 10vw); }
   .gameplay-header { padding-inline: 32px; }
+  .leaderboard-content { width: min(100% - 48px, 720px); padding: 40px 0; }
+  .leaderboard-table-header,
+  .leaderboard-row { grid-template-columns: 72px minmax(140px, 1fr) 110px 120px; }
 }
 
 @media (max-width: 480px) {
@@ -782,4 +890,18 @@ a:hover { text-decoration: underline; }
   #game-canvas { width: 100%; }
   .gameplay-layout { gap: 16px; padding: 16px; }
   .game-context { grid-template-columns: 1fr; }
+  .leaderboard-top-bar { min-height: 84px; padding-inline: 20px; }
+  .leaderboard-identity p { font-size: .9375rem; }
+  .leaderboard-back-button { width: 118px; min-height: 40px; font-size: .8125rem; }
+  .leaderboard-content { width: min(100% - 32px, 720px); gap: 20px; padding: 32px 0; }
+  .leaderboard-heading { min-height: 0; }
+  .leaderboard-heading h1 { font-size: 1.75rem; }
+  .leaderboard-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .leaderboard-table-card { min-height: 0; padding: 12px; border-radius: 16px; }
+  .leaderboard-table-header,
+  .leaderboard-row { grid-template-columns: 48px minmax(0, 1fr) 76px; padding: 0 10px; }
+  .leaderboard-table-header span:last-child,
+  .leaderboard-row span:last-child { display: none; }
+  .leaderboard-row { font-size: .8125rem; }
+  .leaderboard-row strong { font-size: .8125rem; }
 }

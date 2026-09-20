@@ -210,7 +210,8 @@ public class GameService implements GameApplicationService {
             for (int x = 0; x < tiles[y].length; x++) {
                 if (tiles[y][x] == TileType.EMPTY
                         && (x != start.x() || y != start.y())
-                        && (x != exit.x() || y != exit.y())) {
+                        && (x != exit.x() || y != exit.y())
+                        && canJumpOverTileAt(tiles, x, y)) {
                     candidates.add(new Position(x, y));
                 }
             }
@@ -223,6 +224,21 @@ public class GameService implements GameApplicationService {
         nextCandidate = placeTiles(tiles, candidates, nextCandidate, counts.spikes(), TileType.SPIKES);
         nextCandidate = placeTiles(tiles, candidates, nextCandidate, counts.freeze(), TileType.FREEZE);
         placeTiles(tiles, candidates, nextCandidate, counts.fog(), TileType.FOG);
+    }
+
+    /**
+     * A special tile is only useful as a jump obstacle when the player can stand on one side
+     * and land on the other. Require a straight, walkable three-cell segment in either axis.
+     */
+    private boolean canJumpOverTileAt(TileType[][] tiles, int x, int y) {
+        return (isWalkableTileAt(tiles, x - 1, y) && isWalkableTileAt(tiles, x + 1, y))
+                || (isWalkableTileAt(tiles, x, y - 1) && isWalkableTileAt(tiles, x, y + 1));
+    }
+
+    private boolean isWalkableTileAt(TileType[][] tiles, int x, int y) {
+        return y >= 0 && y < tiles.length
+                && x >= 0 && x < tiles[y].length
+                && tiles[y][x].isWalkable();
     }
 
     private int placeTiles(
