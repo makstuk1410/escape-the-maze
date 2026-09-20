@@ -43,4 +43,20 @@ public class GameController {
         GameSession session = gameApplicationService.getGame(gameId, authenticatedUser.id());
         return ResponseEntity.ok(GameStateResponse.from(session));
     }
+
+    @PostMapping("/{gameId}/pause")
+    public ResponseEntity<GameStateResponse> pauseGame(
+            @PathVariable UUID gameId,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        GameSession session = gameApplicationService.pause(gameId, authenticatedUser.id());
+        return ResponseEntity.ok(GameStateResponse.from(session));
+    }
+
+    @PostMapping("/{gameId}/resume")
+    public ResponseEntity<GameStateResponse> resumeGame(
+            @PathVariable UUID gameId,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        GameSession session = gameApplicationService.resume(gameId, authenticatedUser.id());
+        return ResponseEntity.ok(GameStateResponse.from(session));
+    }
 }

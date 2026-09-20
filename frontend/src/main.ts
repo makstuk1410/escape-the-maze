@@ -12,6 +12,7 @@ let fogRefreshInterval: number | undefined;
 let keyboardInput: KeyboardInput | undefined;
 let gameSocket: GameSocket | undefined;
 let playerAnimationFrame: number | undefined;
+let gameplayEscapeHandler: ((event: KeyboardEvent) => void) | undefined;
 
 if (!app) {
   throw new Error("Application root was not found.");
@@ -33,6 +34,10 @@ function renderCurrentPage(): void {
   }
   keyboardInput?.stop();
   keyboardInput = undefined;
+  if (gameplayEscapeHandler) {
+    window.removeEventListener("keydown", gameplayEscapeHandler);
+    gameplayEscapeHandler = undefined;
+  }
   gameSocket?.close();
   gameSocket = undefined;
   if (playerAnimationFrame !== undefined) {
@@ -220,7 +225,7 @@ async function renderGameplayCanvasPage(): Promise<void> {
           </span>
         </div>
         <div class="gameplay-actions">
-          <button class="pause-button" type="button" disabled aria-label="Pause is not available yet">Pause</button>
+          <button class="pause-button" id="pause-button" type="button">Pause</button>
           <span class="sr-only" id="movement-status" aria-live="polite">WASD / arrows • Space + direction jumps</span>
         </div>
       </header>
@@ -268,6 +273,30 @@ async function renderGameplayCanvasPage(): Promise<void> {
           </section>
         </aside>
       </section>
+      <div class="game-modal-overlay" id="pause-modal" hidden>
+        <section class="game-modal pause-modal" role="dialog" aria-modal="true" aria-labelledby="pause-modal-title">
+          <h2 id="pause-modal-title">RUN PAUSED</h2>
+          <p class="game-modal-copy">Your current run is paused. Continue when you are ready.</p>
+          <div class="game-modal-spacer" aria-hidden="true"></div>
+          <button class="game-modal-primary" id="continue-game-button" type="button">Continue</button>
+          <button class="game-modal-secondary" id="leave-game-button" type="button">Leave game</button>
+          <p class="game-modal-hint">Press Esc to continue</p>
+        </section>
+      </div>
+      <div class="game-modal-overlay" id="result-modal" hidden>
+        <section class="game-modal result-modal" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
+          <p class="game-modal-kicker" id="result-modal-kicker">RUN COMPLETE</p>
+          <h2 id="result-modal-title">You escaped!</h2>
+          <p class="game-modal-copy" id="result-modal-copy"></p>
+          <section class="final-score-card" aria-label="Final score">
+            <p>FINAL SCORE</p>
+            <output id="result-score">0000</output>
+          </section>
+          <p class="result-modal-note" id="result-modal-note"></p>
+          <button class="game-modal-primary" id="result-primary-button" type="button">Play again</button>
+          <button class="game-modal-secondary" id="result-menu-button" type="button">Back to menu</button>
+        </section>
+      </div>
     </main>
   `;
 
@@ -282,13 +311,63 @@ async function renderGameplayCanvasPage(): Promise<void> {
   const connectionStatus = app!.querySelector<HTMLElement>("#connection-status");
   const connectionStatusLabel = app!.querySelector<HTMLElement>("#connection-status-label");
   const connectionLostBanner = app!.querySelector<HTMLElement>("#connection-lost-banner");
-  if (!canvas || !scoreValue || !healthHearts || !healthValue || !timerValue || !gameMeta || !activeEffects || !movementStatus || !connectionStatus || !connectionStatusLabel || !connectionLostBanner) throw new Error("Game canvas could not be initialized.");
+  const pauseButton = app!.querySelector<HTMLButtonElement>("#pause-button");
+  const pauseModal = app!.querySelector<HTMLElement>("#pause-modal");
+  const continueGameButton = app!.querySelector<HTMLButtonElement>("#continue-game-button");
+  const leaveGameButton = app!.querySelector<HTMLButtonElement>("#leave-game-button");
+  const resultModal = app!.querySelector<HTMLElement>("#result-modal");
+  const resultKicker = app!.querySelector<HTMLElement>("#result-modal-kicker");
+  const resultTitle = app!.querySelector<HTMLElement>("#result-modal-title");
+  const resultCopy = app!.querySelector<HTMLElement>("#result-modal-copy");
+  const resultScore = app!.querySelector<HTMLOutputElement>("#result-score");
+  const resultNote = app!.querySelector<HTMLElement>("#result-modal-note");
+  const resultPrimaryButton = app!.querySelector<HTMLButtonElement>("#result-primary-button");
+  const resultMenuButton = app!.querySelector<HTMLButtonElement>("#result-menu-button");
+  if (!canvas || !scoreValue || !healthHearts || !healthValue || !timerValue || !gameMeta || !activeEffects || !movementStatus || !connectionStatus || !connectionStatusLabel || !connectionLostBanner || !pauseButton || !pauseModal || !continueGameButton || !leaveGameButton || !resultModal || !resultKicker || !resultTitle || !resultCopy || !resultScore || !resultNote || !resultPrimaryButton || !resultMenuButton) throw new Error("Game canvas could not be initialized.");
   const renderer = new CanvasRenderer(canvas);
   let gameState: GameState | undefined;
   let displayedPlayer: { x: number; y: number } | undefined;
   let displayedPlayerLift = 0;
   let movementInFlight = false;
   let pendingJump = false;
+  let resultShown = false;
+  const hidePauseModal = (): void => { pauseModal.hidden = true; };
+  const showPauseModal = (): void => { pauseModal.hidden = false; };
+  const leaveGame = (): void => {
+    window.sessionStorage.removeItem("escape-the-maze.current-game-id");
+    window.location.hash = "#menu";
+  };
+  const showResultModal = (state: GameState): void => {
+    if (resultShown || state.status === "RUNNING" || state.status === "PAUSED") return;
+    resultShown = true;
+    const content = state.status === "WON"
+      ? {
+          kicker: "RUN COMPLETE", title: "You escaped!",
+          copy: `Your ${formatDifficulty(state.difficulty)} run is complete. The server verified your score.`,
+          note: `New personal best for ${formatDifficulty(state.difficulty)}!`, primary: "Play again",
+        }
+      : state.status === "LOST"
+        ? {
+            kicker: "RUN ENDED", title: "The maze got you.",
+            copy: "You ran out of health, but your result has been saved.",
+            note: `Try again to improve your ${formatDifficulty(state.difficulty)} best.`, primary: "Try again",
+          }
+        : {
+            kicker: "TIME EXPIRED", title: "Time ran out.",
+            copy: "The exit stayed ahead of you. Your result has been saved.",
+            note: `Try a faster route on your next ${formatDifficulty(state.difficulty)} run.`, primary: "Play again",
+          };
+    resultKicker.textContent = content.kicker;
+    resultTitle.textContent = content.title;
+    resultCopy.textContent = content.copy;
+    resultScore.textContent = formatScore(state.score);
+    resultNote.textContent = content.note;
+    resultPrimaryButton.textContent = content.primary;
+    pauseButton.disabled = true;
+    keyboardInput?.stop();
+    stopTimer();
+    resultModal.hidden = false;
+  };
   const draw = (): void => {
     resizeCanvasForDisplay(canvas);
     if (gameState) {
@@ -310,6 +389,7 @@ async function renderGameplayCanvasPage(): Promise<void> {
     renderHealth(healthHearts, healthValue, gameState.player.health);
     gameMeta.textContent = `${gameState.difficulty}  •  ${gameState.generator} MAZE`;
     activeEffects.textContent = activeEffectsLabel(gameState.effects);
+    pauseButton.disabled = gameState.status !== "RUNNING";
     draw();
   };
   const animatePlayerTo = (target: { x: number; y: number }, isJump: boolean): void => {
@@ -364,11 +444,60 @@ async function renderGameplayCanvasPage(): Promise<void> {
   draw();
   movementStatus.textContent = "Connecting…";
 
+  resultPrimaryButton.addEventListener("click", () => {
+    window.sessionStorage.removeItem("escape-the-maze.current-game-id");
+    window.location.hash = "#game-setup";
+  });
+  resultMenuButton.addEventListener("click", leaveGame);
+  leaveGameButton.addEventListener("click", leaveGame);
+  const resumeGame = async (): Promise<void> => {
+    if (!gameState || gameState.status !== "PAUSED") return;
+    continueGameButton.disabled = true;
+    try {
+      gameState = await gameApi.resumeGame(gameId);
+      hidePauseModal();
+      renderGameState();
+      startTimer(timerValue, gameState.endsAt);
+      keyboardInput?.start();
+      movementStatus.textContent = "LIVE • Space + direction jumps";
+    } catch (error) {
+      movementStatus.textContent = error instanceof ApiError ? error.message : "Game could not resume.";
+    } finally {
+      continueGameButton.disabled = false;
+    }
+  };
+  continueGameButton.addEventListener("click", () => { void resumeGame(); });
+  gameplayEscapeHandler = (event: KeyboardEvent): void => {
+    if (event.key === "Escape" && !pauseModal.hidden) {
+      event.preventDefault();
+      void resumeGame();
+    }
+  };
+  window.addEventListener("keydown", gameplayEscapeHandler);
+  pauseButton.addEventListener("click", async () => {
+    if (!gameState || gameState.status !== "RUNNING") return;
+    pauseButton.disabled = true;
+    try {
+      gameState = await gameApi.pauseGame(gameId);
+      renderGameState();
+      stopTimer();
+      keyboardInput?.stop();
+      movementStatus.textContent = "Run paused";
+      if (gameState.status === "PAUSED") showPauseModal();
+      else showResultModal(gameState);
+    } catch (error) {
+      pauseButton.disabled = false;
+      movementStatus.textContent = error instanceof ApiError ? error.message : "Game could not pause.";
+    }
+  });
+
   try {
     gameState = await gameApi.getGame(gameId);
     displayedPlayer = { ...gameState.player };
     renderGameState();
-    startTimer(timerValue, gameState.endsAt);
+    if (gameState.status === "RUNNING") startTimer(timerValue, gameState.endsAt);
+    if (gameState.status === "PAUSED") showPauseModal();
+    showResultModal(gameState);
     const accessToken = apiClient.getAccessToken();
     if (!accessToken) throw new Error("Sign in again to connect to this game.");
     const socket = new GameSocket();
@@ -382,6 +511,12 @@ async function renderGameplayCanvasPage(): Promise<void> {
         gameState = applyStateUpdate(gameState, state);
         renderGameState();
         animatePlayerTo(gameState.player, wasJump);
+        if (gameState.status === "PAUSED") {
+          stopTimer();
+          keyboardInput?.stop();
+          showPauseModal();
+        }
+        showResultModal(gameState);
       },
       onConnectionStatus: (status) => {
         renderConnectionStatus(status, connectionStatus, connectionStatusLabel, connectionLostBanner);
@@ -395,6 +530,10 @@ async function renderGameplayCanvasPage(): Promise<void> {
     });
     if (gameSocket !== socket) return;
     keyboardInput = new KeyboardInput(({ direction, jump }) => {
+      if (gameState?.status !== "RUNNING") {
+        movementStatus.textContent = "The run is not active.";
+        return;
+      }
       if (movementInFlight || playerAnimationFrame !== undefined) {
         movementStatus.textContent = "Finishing move…";
         return;
@@ -412,7 +551,7 @@ async function renderGameplayCanvasPage(): Promise<void> {
         movementStatus.textContent = error instanceof Error ? error.message : "Move was not sent.";
       }
     });
-    keyboardInput.start();
+    if (gameState?.status === "RUNNING") keyboardInput.start();
   } catch (error) {
     movementStatus.textContent = error instanceof ApiError ? error.message : "Game could not be loaded";
   }
@@ -490,6 +629,7 @@ function formatDirection(direction: "UP" | "DOWN" | "LEFT" | "RIGHT"): string {
 }
 
 function startTimer(element: HTMLOutputElement, endsAt: string): void {
+  stopTimer();
   const endTime = new Date(endsAt).getTime();
   const updateTimer = (): void => {
     const remainingSeconds = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
@@ -501,6 +641,13 @@ function startTimer(element: HTMLOutputElement, endsAt: string): void {
   };
   updateTimer();
   timerInterval = window.setInterval(updateTimer, 1_000);
+}
+
+function stopTimer(): void {
+  if (timerInterval !== undefined) {
+    window.clearInterval(timerInterval);
+    timerInterval = undefined;
+  }
 }
 
 function renderHealth(heartsElement: HTMLOutputElement, valueElement: HTMLOutputElement, health: number): void {

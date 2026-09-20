@@ -16,4 +16,12 @@ export class GameApi {
   getGame(gameId: string): Promise<GameState> {
     return this.client.get<GameState>(`/api/games/${encodeURIComponent(gameId)}`, { authenticated: true });
   }
+
+  pauseGame(gameId: string): Promise<GameState> {
+    return this.client.post<GameState>(`/api/games/${encodeURIComponent(gameId)}/pause`, undefined, { authenticated: true });
+  }
+
+  resumeGame(gameId: string): Promise<GameState> {
+    return this.client.post<GameState>(`/api/games/${encodeURIComponent(gameId)}/resume`, undefined, { authenticated: true });
+  }
 }

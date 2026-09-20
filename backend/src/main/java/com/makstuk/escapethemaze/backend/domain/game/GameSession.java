@@ -3,6 +3,7 @@ package com.makstuk.escapethemaze.backend.domain.game;
 import com.makstuk.escapethemaze.backend.domain.maze.Maze;
 import com.makstuk.escapethemaze.backend.domain.maze.Position;
 import com.makstuk.escapethemaze.backend.domain.maze.TileType;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,7 +22,8 @@ public class GameSession {
     private int score;
     private GameStatus status;
     private final Instant startedAt;
-    private final Instant endsAt;
+    private Instant endsAt;
+    private Instant pausedAt;
     private Instant frozenUntil;
     private Instant fogUntil;
     private Instant damageCooldownUntil;
@@ -107,6 +109,33 @@ public class GameSession {
 
     public boolean acceptsMovement() {
         return status == GameStatus.RUNNING;
+    }
+
+    /** Pauses a running session without letting its game clock continue in the background. */
+    public boolean pause(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (status != GameStatus.RUNNING) {
+            return false;
+        }
+
+        pausedAt = now;
+        status = GameStatus.PAUSED;
+        incrementStateVersion();
+        return true;
+    }
+
+    /** Resumes a paused session and extends its deadline by the time it was paused. */
+    public boolean resume(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+        if (status != GameStatus.PAUSED || pausedAt == null) {
+            return false;
+        }
+
+        endsAt = endsAt.plus(Duration.between(pausedAt, now));
+        pausedAt = null;
+        status = GameStatus.RUNNING;
+        incrementStateVersion();
+        return true;
     }
 
     /**
@@ -279,13 +308,13 @@ public class GameSession {
     }
 
     /**
-     * Finishes a running or paused session when its authoritative deadline is reached.
+     * Finishes a running session when its authoritative deadline is reached.
      *
      * @return {@code true} when the session changed to {@link GameStatus#TIMED_OUT}
      */
     public boolean timeoutIfExpired(Instant now) {
         Objects.requireNonNull(now, "now must not be null");
-        if (now.isBefore(endsAt) || (status != GameStatus.RUNNING && status != GameStatus.PAUSED)) {
+        if (now.isBefore(endsAt) || status != GameStatus.RUNNING) {
             return false;
         }
 

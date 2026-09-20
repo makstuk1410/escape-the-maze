@@ -92,6 +92,21 @@ class GameControllerTest {
         verify(gameApplicationService).getGame(GAME_ID, USER_ID);
     }
 
+    @Test
+    void pausesAndResumesTheOwnersGame() {
+        GameSession session = session();
+        when(gameApplicationService.pause(GAME_ID, USER_ID)).thenReturn(session);
+        when(gameApplicationService.resume(GAME_ID, USER_ID)).thenReturn(session);
+
+        var paused = gameController.pauseGame(GAME_ID, new AuthenticatedUser(USER_ID, "maze_tester"));
+        var resumed = gameController.resumeGame(GAME_ID, new AuthenticatedUser(USER_ID, "maze_tester"));
+
+        assertThat(paused.getStatusCode().value()).isEqualTo(200);
+        assertThat(resumed.getStatusCode().value()).isEqualTo(200);
+        verify(gameApplicationService).pause(GAME_ID, USER_ID);
+        verify(gameApplicationService).resume(GAME_ID, USER_ID);
+    }
+
     private GameSession session() {
         Instant startedAt = Instant.parse("2026-09-18T12:00:00Z");
         TileType[][] tiles = {

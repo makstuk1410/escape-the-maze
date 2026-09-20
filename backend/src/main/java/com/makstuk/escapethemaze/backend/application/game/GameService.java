@@ -132,6 +132,29 @@ public class GameService implements GameApplicationService {
     }
 
     @Override
+    public GameSession pause(UUID gameId, UUID ownerUserId) {
+        GameSession session = getGame(gameId, ownerUserId);
+        synchronized (session) {
+            Instant now = clock.instant();
+            if (session.timeoutIfExpired(now)) {
+                persistCompletedResult(session, now);
+                return session;
+            }
+            session.pause(now);
+            return session;
+        }
+    }
+
+    @Override
+    public GameSession resume(UUID gameId, UUID ownerUserId) {
+        GameSession session = getGame(gameId, ownerUserId);
+        synchronized (session) {
+            session.resume(clock.instant());
+            return session;
+        }
+    }
+
+    @Override
     public GameSession getGame(UUID gameId, UUID ownerUserId) {
         Objects.requireNonNull(gameId, "gameId must not be null");
         Objects.requireNonNull(ownerUserId, "ownerUserId must not be null");

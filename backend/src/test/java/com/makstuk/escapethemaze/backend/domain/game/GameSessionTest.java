@@ -255,6 +255,31 @@ class GameSessionTest {
         assertThat(wonSession.getStatus()).isEqualTo(GameStatus.WON);
     }
 
+    @Test
+    void pausesTheClockAndExtendsTheDeadlineWhenResumed() {
+        Instant startedAt = Instant.parse("2026-09-18T10:00:00Z");
+        Instant endsAt = startedAt.plusSeconds(300);
+        GameSession session = new GameSession(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                Difficulty.NORMAL,
+                maze(),
+                new PlayerState(1, 1),
+                startedAt,
+                endsAt);
+
+        Instant pausedAt = startedAt.plusSeconds(120);
+        Instant resumedAt = pausedAt.plusSeconds(45);
+        assertThat(session.pause(pausedAt)).isTrue();
+        assertThat(session.acceptsMovement()).isFalse();
+        assertThat(session.timeoutIfExpired(endsAt.plusSeconds(20))).isFalse();
+
+        assertThat(session.resume(resumedAt)).isTrue();
+        assertThat(session.getStatus()).isEqualTo(GameStatus.RUNNING);
+        assertThat(session.getEndsAt()).isEqualTo(endsAt.plusSeconds(45));
+        assertThat(session.timeoutIfExpired(endsAt.plusSeconds(20))).isFalse();
+    }
+
     private Maze maze() {
         TileType[][] tiles = {
             {TileType.WALL, TileType.WALL, TileType.WALL},
