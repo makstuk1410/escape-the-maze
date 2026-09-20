@@ -17,7 +17,7 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     environment:
       DB_HOST: postgres
@@ -35,7 +35,7 @@ services:
 
   frontend:
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
     depends_on:
       - backend
