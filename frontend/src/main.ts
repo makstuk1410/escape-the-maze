@@ -1,4 +1,4 @@
-import { ApiError } from "./api";
+import { ApiError, leaderboardApi, type Difficulty } from "./api";
 import { authState } from "./auth";
 import "./styles/main.css";
 
@@ -9,9 +9,13 @@ if (!app) {
 }
 
 window.addEventListener("hashchange", renderCurrentPage);
-renderCurrentPage();
+void authState.restore().then(renderCurrentPage);
 
 function renderCurrentPage(): void {
+  if (window.location.hash === "#menu") {
+    void renderMenuPage();
+    return;
+  }
   if (window.location.hash === "#register") {
     renderRegisterPage();
     return;
@@ -66,7 +70,7 @@ function renderLoginPage(): void {
         setMessage(message, snapshot.error ?? "We could not sign you in. Please try again.", true);
         return;
       }
-      setMessage(message, `Welcome back, ${snapshot.user?.username ?? "runner"}.`);
+      window.location.hash = "#menu";
     } catch (error) {
       setMessage(message, error instanceof ApiError ? error.message : "We could not sign you in. Please try again.", true);
     } finally {
@@ -74,6 +78,93 @@ function renderLoginPage(): void {
       submitButton.textContent = "Sign in";
     }
   });
+}
+
+async function renderMenuPage(): Promise<void> {
+  const user = authState.getSnapshot().user;
+  if (!authState.isAuthenticated() || !user) {
+    window.location.hash = "#login";
+    return;
+  }
+
+  app!.innerHTML = `
+    <main class="menu-page">
+      <aside class="menu-brand-panel">
+        <div class="menu-brand-copy">
+          <p class="eyebrow">ESCAPE THE MAZE</p>
+          <h1>FIND YOUR<br>WAY OUT.</h1>
+          <span class="title-accent" aria-hidden="true"></span>
+          <p class="menu-tagline">Every path is a choice. Every second counts.</p>
+          <section class="player-status" aria-labelledby="personal-best-title">
+            <p class="player-name">${escapeHtml(user.username)}</p>
+            <h2 id="personal-best-title">PERSONAL BEST SCORES</h2>
+            <div class="best-score-grid" id="best-score-grid" aria-live="polite">
+              ${bestScoreCell("EASY", "…")}
+              ${bestScoreCell("NORMAL", "…")}
+              ${bestScoreCell("HARD", "…")}
+              ${bestScoreCell("EXPERT", "…")}
+            </div>
+          </section>
+        </div>
+      </aside>
+
+      <section class="menu-content" aria-labelledby="menu-heading">
+        <header class="menu-header">
+          <h2 id="menu-heading">Welcome, ${escapeHtml(user.username)}</h2>
+          <p>Choose your next move. Your best runs are saved to the leaderboard.</p>
+        </header>
+        <section class="start-game-card" aria-labelledby="play-heading">
+          <h2 id="play-heading">Ready for another run?</h2>
+          <p>Generate a new maze, choose the difficulty, and beat the clock.</p>
+          <button class="primary-button menu-play-button" type="button" id="play-button">Play now</button>
+        </section>
+        <div class="menu-actions">
+          <a class="menu-action leaderboard-action" href="#leaderboard">
+            <strong>Leaderboard</strong>
+            <span>See your position and chase the highest score.</span>
+          </a>
+          <button class="menu-action logout-action" type="button" id="logout-button">
+            <strong>Log out</strong>
+            <span>Leave this session safely. Your scores are saved.</span>
+          </button>
+        </div>
+      </section>
+    </main>
+  `;
+
+  app!.querySelector<HTMLButtonElement>("#play-button")?.addEventListener("click", () => {
+    window.location.hash = "#game-setup";
+  });
+  app!.querySelector<HTMLButtonElement>("#logout-button")?.addEventListener("click", async () => {
+    await authState.logout();
+    window.location.hash = "#login";
+  });
+
+  const scoreGrid = app!.querySelector<HTMLDivElement>("#best-score-grid");
+  if (!scoreGrid) return;
+  try {
+    const scores = await loadPersonalBestScores(user.username);
+    scoreGrid.innerHTML = (Object.entries(scores) as [Difficulty, number][])
+      .map(([difficulty, score]) => bestScoreCell(difficulty, String(score)))
+      .join("");
+  } catch {
+    scoreGrid.innerHTML = ["EASY", "NORMAL", "HARD", "EXPERT"]
+      .map((difficulty) => bestScoreCell(difficulty, "—"))
+      .join("");
+  }
+}
+
+async function loadPersonalBestScores(username: string): Promise<Record<Difficulty, number>> {
+  const difficulties: Difficulty[] = ["EASY", "NORMAL", "HARD", "EXPERT"];
+  const leaderboards = await Promise.all(difficulties.map((difficulty) => leaderboardApi.getLeaderboard(difficulty)));
+  return Object.fromEntries(leaderboards.map(({ difficulty, entries }) => [
+    difficulty,
+    Math.max(0, ...entries.filter((entry) => entry.username === username).map((entry) => entry.score)),
+  ])) as Record<Difficulty, number>;
+}
+
+function bestScoreCell(difficulty: string, score: string): string {
+  return `<div class="best-score-cell"><span>${difficulty}</span><strong>${score}</strong></div>`;
 }
 
 function renderRegisterPage(): void {
@@ -161,4 +252,14 @@ function setMessage(element: HTMLParagraphElement, text: string, isError = false
   element.textContent = text;
   element.classList.toggle("is-error", isError);
   element.classList.toggle("is-visible", Boolean(text));
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#039;",
+    "\"": "&quot;",
+  }[character] ?? character));
 }
