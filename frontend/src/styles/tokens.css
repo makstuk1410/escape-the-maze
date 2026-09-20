@@ -1,0 +1,12 @@
+:root {
+  --color-surface-background: #081a2b;
+  --color-surface-default: #104243;
+  --color-surface-hover: #163a5b;
+  --color-surface-border: #274b6d;
+  --color-text-primary: #f5faff;
+  --color-text-secondary: #a9bed1;
+  --color-action-primary: #00a5de;
+  --color-game-wall: #397fc1;
+  --color-game-gold: #ffcc00;
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+}

@@ -1,0 +1,66 @@
+# REST API Design
+
+## Conventions
+
+- Base path: `/api`
+- Request and response bodies use JSON.
+- Protected endpoints require an authenticated user session.
+- The server returns standard HTTP status codes and a JSON error response for
+  invalid requests.
+- Real-time movement commands are sent through WebSocket, not REST.
+
+## Endpoint List
+
+| Method | Path | Authentication | Purpose |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | No | Create a user account and authenticate the new user. |
+| `POST` | `/api/auth/login` | No | Authenticate an existing user. |
+| `POST` | `/api/auth/logout` | Yes | End the current authenticated session. |
+| `GET` | `/api/auth/me` | Yes | Return the current authenticated user. |
+| `GET` | `/api/levels` | Yes | Return supported difficulties and maze generators. |
+| `POST` | `/api/games` | Yes | Create a game session owned by the authenticated user. |
+| `GET` | `/api/games/{gameId}` | Yes | Return the authoritative state of the owner's game session. |
+| `GET` | `/api/leaderboard?difficulty={difficulty}` | No | Return the completed, server-verified ranking for one difficulty. |
+
+## Endpoint Responsibilities
+
+### Authentication
+
+- `POST /api/auth/register` accepts username, email, and password.
+- `POST /api/auth/login` accepts an account identifier and password.
+- `POST /api/auth/logout` removes the current authentication session/token.
+- `GET /api/auth/me` lets the browser restore the authenticated user after a
+  page reload.
+
+### Game Setup and Recovery
+
+- `GET /api/levels` provides supported difficulties and their fixed maze
+  generators; the browser does not choose a generator independently.
+- `POST /api/games` creates the maze, player, timer, and active `GameSession`.
+  It accepts only the selected difficulty; the authenticated JWT identity becomes
+  the session owner. A successful request returns `201 Created`, a
+  `Location: /api/games/{gameId}` header, and the initial authoritative state.
+
+  ```json
+  { "difficulty": "EASY" }
+  ```
+
+  The response contains `gameId`, `difficulty`, fixed `generator`, `width`,
+  `height`, the complete `tiles` grid, `player` coordinates and health, `score`,
+  `status`, `startedAt`, `endsAt`, and `stateVersion`.
+- `GET /api/games/{gameId}` is used to restore an active game after refresh or
+  WebSocket reconnection. It returns the same authoritative state shape as
+  `POST /api/games`; the server returns `404` for an unknown ID and rejects
+  requests from non-owners with `403`.
+
+### Leaderboard
+
+- `GET /api/leaderboard?difficulty={difficulty}` requires one of `EASY`,
+  `NORMAL`, `HARD`, or `EXPERT` and returns only persisted game results for
+  that difficulty, ordered by server-calculated score descending and completion
+  time ascending. It is public and returns the requested `difficulty` plus
+  ranked entries containing only `rank`, `username`, `score`, `status`, and
+  `endedAt`.
+- The API returns `400 Bad Request` when `difficulty` is missing or is not a
+  supported value. It never returns a combined cross-difficulty ranking.
+- The API does not expose a client-controlled score-submission endpoint.
