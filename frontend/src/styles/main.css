@@ -68,17 +68,19 @@ h1 {
   background: var(--color-surface-default);
 }
 
-.register-card {
+.auth-card {
   display: flex;
   flex-direction: column;
   width: min(440px, 100%);
-  min-height: 650px;
   padding: 40px 48px;
   border: 1px solid var(--color-surface-border);
   border-radius: 20px;
   background: var(--color-surface-hover);
   box-shadow: 0 20px 50px rgb(0 0 0 / 18%);
 }
+
+.login-card { min-height: 540px; }
+.register-card { min-height: 650px; }
 
 h2 { font-size: 2rem; line-height: 1.25; }
 
@@ -93,6 +95,8 @@ h2 { font-size: 2rem; line-height: 1.25; }
   gap: 10px;
   margin-top: 20px;
 }
+
+.login-fields { margin-top: 26px; }
 
 label { font-size: .875rem; font-weight: 500; }
 
@@ -121,6 +125,13 @@ input:focus { border-color: var(--color-action-primary); box-shadow: 0 0 0 3px r
 
 .form-message.is-visible { visibility: visible; }
 .form-message.is-error { color: #ff9b9b; }
+
+.recovery-row {
+  min-height: 32px;
+  margin-top: 8px;
+  font-size: .875rem;
+  text-align: right;
+}
 
 .primary-button {
   width: 100%;
@@ -158,6 +169,6 @@ a:hover { text-decoration: underline; }
   h1 { font-size: 2.8rem; }
   .brand-tagline { font-size: 1rem; }
   .form-panel { padding: 24px 16px; }
-  .register-card { min-height: 0; padding: 32px 24px; }
+  .auth-card { min-height: 0; padding: 32px 24px; }
   h2 { font-size: 1.75rem; }
 }
