@@ -5,11 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.makstuk.escapethemaze.backend.application.game.GameApplicationService;
 import com.makstuk.escapethemaze.backend.domain.game.GameSession;
 import com.makstuk.escapethemaze.backend.domain.game.GameStatus;
+import com.makstuk.escapethemaze.backend.domain.maze.TileType;
 import com.makstuk.escapethemaze.backend.security.jwt.AuthenticatedUser;
 import com.makstuk.escapethemaze.backend.security.websocket.WebSocketAuthenticationHandshakeInterceptor;
 import com.makstuk.escapethemaze.backend.websocket.protocol.MoveCommand;
 import com.makstuk.escapethemaze.backend.websocket.protocol.GameFinishedMessage;
+import com.makstuk.escapethemaze.backend.websocket.protocol.StateMessage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
@@ -45,8 +49,13 @@ public class GameWebSocketHandler extends TextWebSocketHandler implements GameCo
             return;
         }
 
+        TileType[][] tilesBeforeMove = gameApplicationService.getGame(gameId, user.id()).getMaze().getTiles();
         GameSession updatedSession = gameApplicationService.move(gameId, user.id(), command.direction());
-        if (updatedSession != null && isTerminal(updatedSession.getStatus())) {
+        if (updatedSession == null) {
+            return;
+        }
+        sendState(session, updatedSession, changedTiles(tilesBeforeMove, updatedSession.getMaze().getTiles()));
+        if (isTerminal(updatedSession.getStatus())) {
             sendGameFinished(session, updatedSession);
         }
     }
@@ -70,5 +79,25 @@ public class GameWebSocketHandler extends TextWebSocketHandler implements GameCo
     private void sendGameFinished(WebSocketSession session, GameSession gameSession) throws IOException {
         String payload = objectMapper.writeValueAsString(GameFinishedMessage.from(gameSession));
         session.sendMessage(new TextMessage(payload));
+    }
+
+    private void sendState(
+            WebSocketSession session,
+            GameSession gameSession,
+            List<StateMessage.ChangedTile> changedTiles) throws IOException {
+        String payload = objectMapper.writeValueAsString(StateMessage.from(gameSession, changedTiles));
+        session.sendMessage(new TextMessage(payload));
+    }
+
+    private List<StateMessage.ChangedTile> changedTiles(TileType[][] before, TileType[][] after) {
+        List<StateMessage.ChangedTile> changedTiles = new ArrayList<>();
+        for (int y = 0; y < after.length; y++) {
+            for (int x = 0; x < after[y].length; x++) {
+                if (before[y][x] != after[y][x]) {
+                    changedTiles.add(new StateMessage.ChangedTile(x, y, after[y][x]));
+                }
+            }
+        }
+        return List.copyOf(changedTiles);
     }
 }

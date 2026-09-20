@@ -1,4 +1,4 @@
-import { ApiError, apiClient, gameApi, leaderboardApi, type Difficulty, type GameState, type Level } from "./api";
+import { ApiError, apiClient, gameApi, leaderboardApi, type Difficulty, type GameState, type Level, type StateMessage } from "./api";
 import { authState } from "./auth";
 import { CanvasRenderer } from "./game/CanvasRenderer";
 import { KeyboardInput } from "./input/KeyboardInput";
@@ -246,6 +246,12 @@ async function renderGameplayCanvasPage(): Promise<void> {
     }
     renderer.renderPlaceholder();
   };
+  const renderGameState = (): void => {
+    if (!gameState) return;
+    scoreValue.textContent = formatScore(gameState.score);
+    renderHealth(healthHearts, healthValue, gameState.player.health);
+    draw();
+  };
   canvasResizeObserver = new ResizeObserver(draw);
   canvasResizeObserver.observe(canvas);
   draw();
@@ -253,15 +259,17 @@ async function renderGameplayCanvasPage(): Promise<void> {
 
   try {
     gameState = await gameApi.getGame(gameId);
-    scoreValue.textContent = formatScore(gameState.score);
-    renderHealth(healthHearts, healthValue, gameState.player.health);
+    renderGameState();
     startTimer(timerValue, gameState.endsAt);
-    draw();
     const accessToken = apiClient.getAccessToken();
     if (!accessToken) throw new Error("Sign in again to connect to this game.");
     const socket = new GameSocket();
     gameSocket = socket;
-    await socket.connect(gameId, accessToken);
+    await socket.connect(gameId, accessToken, (state) => {
+      if (!gameState || state.stateVersion <= gameState.stateVersion) return;
+      gameState = applyStateUpdate(gameState, state);
+      renderGameState();
+    });
     if (gameSocket !== socket) return;
     movementStatus.textContent = "LIVE • WASD / arrows";
     keyboardInput = new KeyboardInput((direction) => {
@@ -281,6 +289,22 @@ async function renderGameplayCanvasPage(): Promise<void> {
 
 function formatScore(score: number): string {
   return String(Math.max(0, score)).padStart(4, "0");
+}
+
+function applyStateUpdate(current: GameState, state: StateMessage): GameState {
+  const tiles = current.tiles.map((row) => [...row]);
+  state.changedTiles.forEach(({ x, y, type }) => {
+    if (tiles[y]?.[x] !== undefined) tiles[y][x] = type;
+  });
+  return {
+    ...current,
+    tiles,
+    player: state.player,
+    score: state.score,
+    status: state.status,
+    endsAt: state.endsAt,
+    stateVersion: state.stateVersion,
+  };
 }
 
 function formatDirection(direction: "UP" | "DOWN" | "LEFT" | "RIGHT"): string {

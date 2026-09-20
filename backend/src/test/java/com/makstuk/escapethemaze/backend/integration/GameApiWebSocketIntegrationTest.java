@@ -9,7 +9,6 @@ import com.makstuk.escapethemaze.backend.domain.maze.TileType;
 import com.makstuk.escapethemaze.backend.persistence.game.GameResultRepository;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +75,9 @@ class GameApiWebSocketIntegrationTest {
                     {"type":"MOVE","commandId":"8e7d6cf1-4e8e-4b9d-b14c-58fdf10ad67f","direction":"DOWN"}
                     """));
 
-            JsonNode event = objectMapper.readTree(handler.firstMessage.get(5, TimeUnit.SECONDS));
+            JsonNode state = objectMapper.readTree(handler.messages.poll(5, TimeUnit.SECONDS));
+            assertThat(state.get("type").asText()).isEqualTo("STATE");
+            JsonNode event = objectMapper.readTree(handler.messages.poll(5, TimeUnit.SECONDS));
             assertThat(event.get("type").asText()).isEqualTo("GAME_FINISHED");
             assertThat(event.get("status").asText()).isEqualTo("WON");
             assertThat(gameResultRepository.existsByGameId(gameId)).isTrue();
@@ -129,11 +130,11 @@ class GameApiWebSocketIntegrationTest {
 
     private static class MessageCollector extends TextWebSocketHandler {
 
-        private final CompletableFuture<String> firstMessage = new CompletableFuture<>();
+        private final java.util.concurrent.BlockingQueue<String> messages = new java.util.concurrent.LinkedBlockingQueue<>();
 
         @Override
         protected void handleTextMessage(WebSocketSession session, TextMessage message) {
-            firstMessage.complete(message.getPayload());
+            messages.add(message.getPayload());
         }
     }
 }

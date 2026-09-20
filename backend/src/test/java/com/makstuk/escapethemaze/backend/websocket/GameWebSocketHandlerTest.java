@@ -2,6 +2,7 @@ package com.makstuk.escapethemaze.backend.websocket;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -36,6 +37,7 @@ class GameWebSocketHandlerTest {
         UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         WebSocketSession socketSession = authenticatedSession(userId, gameId);
+        when(gameApplicationService.getGame(gameId, userId)).thenReturn(finishedGame());
 
         handler.handleTextMessage(socketSession, new TextMessage("""
                 {"type":"MOVE","commandId":"8e7d6cf1-4e8e-4b9d-b14c-58fdf10ad67f","direction":"LEFT"}
@@ -59,12 +61,13 @@ class GameWebSocketHandlerTest {
     @Test
     void sendsGameFinishedWhenAMoveEndsTheGame() throws Exception {
         GameApplicationService gameApplicationService = mock(GameApplicationService.class);
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         GameWebSocketHandler handler = new GameWebSocketHandler(objectMapper, gameApplicationService);
         UUID userId = UUID.randomUUID();
         UUID gameId = UUID.randomUUID();
         WebSocketSession socketSession = authenticatedSession(userId, gameId);
         GameSession finishedGame = finishedGame();
+        when(gameApplicationService.getGame(gameId, userId)).thenReturn(finishedGame);
         when(gameApplicationService.move(gameId, userId, Direction.RIGHT)).thenReturn(finishedGame);
 
         handler.handleTextMessage(socketSession, new TextMessage("""
@@ -72,8 +75,10 @@ class GameWebSocketHandlerTest {
                 """));
 
         ArgumentCaptor<TextMessage> event = ArgumentCaptor.forClass(TextMessage.class);
-        verify(socketSession).sendMessage(event.capture());
-        var json = objectMapper.readTree(event.getValue().getPayload());
+        verify(socketSession, times(2)).sendMessage(event.capture());
+        var state = objectMapper.readTree(event.getAllValues().get(0).getPayload());
+        assertThat(state.get("type").asText()).isEqualTo("STATE");
+        var json = objectMapper.readTree(event.getAllValues().get(1).getPayload());
         assertThat(json.get("type").asText()).isEqualTo("GAME_FINISHED");
         assertThat(json.get("status").asText()).isEqualTo("WON");
         assertThat(json.get("score").asInt()).isZero();

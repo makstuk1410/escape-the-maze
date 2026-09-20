@@ -69,6 +69,18 @@ export interface GameState {
   stateVersion: number;
 }
 
+/** Authoritative incremental game state received over the game WebSocket. */
+export interface StateMessage {
+  type: "STATE";
+  stateVersion: number;
+  player: Player;
+  score: number;
+  status: GameStatus;
+  endsAt: string;
+  effects: { frozenUntil: string | null; fogUntil: string | null };
+  changedTiles: Array<{ x: number; y: number; type: TileType }>;
+}
+
 export interface LeaderboardEntry {
   rank: number;
   username: string;
