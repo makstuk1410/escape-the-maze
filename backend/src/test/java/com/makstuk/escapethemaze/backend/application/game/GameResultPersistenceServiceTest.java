@@ -28,7 +28,7 @@ import org.mockito.ArgumentCaptor;
 class GameResultPersistenceServiceTest {
 
     @Test
-    void persistsTheTerminalServerStateOnce() {
+    void persistsTheWonServerStateOnce() {
         GameResultRepository gameResultRepository = mock(GameResultRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
         GameResultPersistenceService service = new GameResultPersistenceService(gameResultRepository, userRepository);
@@ -51,7 +51,7 @@ class GameResultPersistenceServiceTest {
     }
 
     @Test
-    void doesNotPersistAnAlreadySavedOrNonTerminalSession() {
+    void doesNotPersistAnAlreadySavedOrNonWinningSession() {
         GameResultRepository gameResultRepository = mock(GameResultRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
         GameResultPersistenceService service = new GameResultPersistenceService(gameResultRepository, userRepository);
@@ -61,6 +61,13 @@ class GameResultPersistenceServiceTest {
 
         service.persistIfCompleted(completedSession, now.plusSeconds(1));
         service.persistIfCompleted(runningSession(now), now.plusSeconds(1));
+
+        GameSession lostSession = runningSession(now);
+        lostSession.updateStatus(GameStatus.LOST);
+        GameSession timedOutSession = runningSession(now);
+        timedOutSession.updateStatus(GameStatus.TIMED_OUT);
+        service.persistIfCompleted(lostSession, now.plusSeconds(1));
+        service.persistIfCompleted(timedOutSession, now.plusSeconds(1));
 
         verify(gameResultRepository).existsByGameId(completedSession.getId());
         verifyNoInteractions(userRepository);

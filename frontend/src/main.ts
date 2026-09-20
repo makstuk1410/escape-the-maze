@@ -349,12 +349,12 @@ async function renderGameplayCanvasPage(): Promise<void> {
       : state.status === "LOST"
         ? {
             kicker: "RUN ENDED", title: "The maze got you.",
-            copy: "You ran out of health, but your result has been saved.",
+            copy: "You ran out of health. Win a run to save a score to the leaderboard.",
             note: `Try again to improve your ${formatDifficulty(state.difficulty)} best.`, primary: "Try again",
           }
         : {
             kicker: "TIME EXPIRED", title: "Time ran out.",
-            copy: "The exit stayed ahead of you. Your result has been saved.",
+            copy: "The exit stayed ahead of you. Win a run to save a score to the leaderboard.",
             note: `Try a faster route on your next ${formatDifficulty(state.difficulty)} run.`, primary: "Play again",
           };
     resultKicker.textContent = content.kicker;

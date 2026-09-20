@@ -12,7 +12,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Persists one server-calculated result when an active session becomes terminal. */
+/** Persists one server-calculated leaderboard result when a player wins a run. */
 @Service
 public class GameResultPersistenceService {
 
@@ -28,7 +28,7 @@ public class GameResultPersistenceService {
     public void persistIfCompleted(GameSession session, Instant endedAt) {
         Objects.requireNonNull(session, "session must not be null");
         Objects.requireNonNull(endedAt, "endedAt must not be null");
-        if (!isTerminal(session.getStatus()) || gameResultRepository.existsByGameId(session.getId())) {
+        if (session.getStatus() != GameStatus.WON || gameResultRepository.existsByGameId(session.getId())) {
             return;
         }
 
@@ -47,7 +47,4 @@ public class GameResultPersistenceService {
         gameResultRepository.saveAndFlush(result);
     }
 
-    private boolean isTerminal(GameStatus status) {
-        return status == GameStatus.WON || status == GameStatus.LOST || status == GameStatus.TIMED_OUT;
-    }
 }
