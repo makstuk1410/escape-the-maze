@@ -197,6 +197,11 @@ async function renderGameplayCanvasPage(): Promise<void> {
             <p id="score-label">SCORE</p>
             <output id="score-value">0000</output>
           </section>
+          <section class="health-card" aria-labelledby="health-label">
+            <p id="health-label">HEALTH</p>
+            <output class="health-hearts" id="health-hearts" aria-label="100 of 100 health"><span class="heart-filled">♥</span><span class="heart-filled">♥</span><span class="heart-filled">♥</span><span class="heart-filled">♥</span><span class="heart-filled">♥</span></output>
+            <output class="health-value" id="health-value">100 / 100</output>
+          </section>
         </aside>
         <section class="canvas-stage">
           <canvas id="game-canvas" width="720" height="720" aria-label="Maze game canvas"></canvas>
@@ -207,7 +212,9 @@ async function renderGameplayCanvasPage(): Promise<void> {
 
   const canvas = app!.querySelector<HTMLCanvasElement>("#game-canvas");
   const scoreValue = app!.querySelector<HTMLOutputElement>("#score-value");
-  if (!canvas || !scoreValue) throw new Error("Game canvas could not be initialized.");
+  const healthHearts = app!.querySelector<HTMLOutputElement>("#health-hearts");
+  const healthValue = app!.querySelector<HTMLOutputElement>("#health-value");
+  if (!canvas || !scoreValue || !healthHearts || !healthValue) throw new Error("Game canvas could not be initialized.");
   const renderer = new CanvasRenderer(canvas);
   let gameState: GameState | undefined;
   const draw = (): void => {
@@ -230,6 +237,7 @@ async function renderGameplayCanvasPage(): Promise<void> {
   try {
     gameState = await gameApi.getGame(gameId);
     scoreValue.textContent = formatScore(gameState.score);
+    renderHealth(healthHearts, healthValue, gameState.player.health);
     draw();
   } catch (error) {
     const label = app!.querySelector<HTMLElement>(".game-id-label");
@@ -239,6 +247,15 @@ async function renderGameplayCanvasPage(): Promise<void> {
 
 function formatScore(score: number): string {
   return String(Math.max(0, score)).padStart(4, "0");
+}
+
+function renderHealth(heartsElement: HTMLOutputElement, valueElement: HTMLOutputElement, health: number): void {
+  const maximumHealth = 100;
+  const boundedHealth = Math.max(0, Math.min(maximumHealth, health));
+  const filledHearts = Math.ceil(boundedHealth / 20);
+  heartsElement.innerHTML = `${"<span class=\"heart-filled\">♥</span>".repeat(filledHearts)}${"<span class=\"heart-empty\">♡</span>".repeat(5 - filledHearts)}`;
+  heartsElement.setAttribute("aria-label", `${boundedHealth} of ${maximumHealth} health`);
+  valueElement.textContent = `${boundedHealth} / ${maximumHealth}`;
 }
 
 function resizeCanvasForDisplay(canvas: HTMLCanvasElement): void {

@@ -408,6 +408,36 @@ a:hover { text-decoration: underline; }
   line-height: 1.2;
 }
 
+.health-card {
+  display: grid;
+  gap: 10px;
+  min-height: 140px;
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid var(--color-surface-border);
+  border-radius: 16px;
+  background: var(--color-surface-hover);
+}
+
+.health-card > p {
+  color: var(--color-text-secondary);
+  font-size: .6875rem;
+  font-weight: 600;
+  letter-spacing: .11em;
+}
+
+.health-hearts {
+  font-size: 1.8rem;
+  letter-spacing: .12em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.heart-filled { color: #F05252; }
+.heart-empty { color: var(--color-surface-border); }
+
+.health-value { color: var(--color-text-secondary); font-size: .8125rem; }
+
 .canvas-stage {
   display: grid;
   place-items: center;
