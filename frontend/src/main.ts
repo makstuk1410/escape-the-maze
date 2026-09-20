@@ -5,6 +5,7 @@ import "./styles/main.css";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 let canvasResizeObserver: ResizeObserver | undefined;
+let timerInterval: number | undefined;
 
 if (!app) {
   throw new Error("Application root was not found.");
@@ -16,6 +17,10 @@ void authState.restore().then(renderCurrentPage);
 function renderCurrentPage(): void {
   canvasResizeObserver?.disconnect();
   canvasResizeObserver = undefined;
+  if (timerInterval !== undefined) {
+    window.clearInterval(timerInterval);
+    timerInterval = undefined;
+  }
   if (window.location.hash === "#menu") {
     void renderMenuPage();
     return;
@@ -189,6 +194,7 @@ async function renderGameplayCanvasPage(): Promise<void> {
     <main class="gameplay-page">
       <header class="gameplay-header">
         <div><p class="eyebrow">ESCAPE THE MAZE</p><h1>YOUR RUN</h1></div>
+        <output class="timer-card" id="timer-value" aria-label="Time remaining">05:00</output>
         <span class="game-id-label">11 × 11 viewport</span>
       </header>
       <section class="gameplay-layout" aria-label="Maze game area">
@@ -214,7 +220,8 @@ async function renderGameplayCanvasPage(): Promise<void> {
   const scoreValue = app!.querySelector<HTMLOutputElement>("#score-value");
   const healthHearts = app!.querySelector<HTMLOutputElement>("#health-hearts");
   const healthValue = app!.querySelector<HTMLOutputElement>("#health-value");
-  if (!canvas || !scoreValue || !healthHearts || !healthValue) throw new Error("Game canvas could not be initialized.");
+  const timerValue = app!.querySelector<HTMLOutputElement>("#timer-value");
+  if (!canvas || !scoreValue || !healthHearts || !healthValue || !timerValue) throw new Error("Game canvas could not be initialized.");
   const renderer = new CanvasRenderer(canvas);
   let gameState: GameState | undefined;
   const draw = (): void => {
@@ -238,6 +245,7 @@ async function renderGameplayCanvasPage(): Promise<void> {
     gameState = await gameApi.getGame(gameId);
     scoreValue.textContent = formatScore(gameState.score);
     renderHealth(healthHearts, healthValue, gameState.player.health);
+    startTimer(timerValue, gameState.endsAt);
     draw();
   } catch (error) {
     const label = app!.querySelector<HTMLElement>(".game-id-label");
@@ -247,6 +255,20 @@ async function renderGameplayCanvasPage(): Promise<void> {
 
 function formatScore(score: number): string {
   return String(Math.max(0, score)).padStart(4, "0");
+}
+
+function startTimer(element: HTMLOutputElement, endsAt: string): void {
+  const endTime = new Date(endsAt).getTime();
+  const updateTimer = (): void => {
+    const remainingSeconds = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    element.textContent = `${String(Math.floor(remainingSeconds / 60)).padStart(2, "0")}:${String(remainingSeconds % 60).padStart(2, "0")}`;
+    if (remainingSeconds === 0 && timerInterval !== undefined) {
+      window.clearInterval(timerInterval);
+      timerInterval = undefined;
+    }
+  };
+  updateTimer();
+  timerInterval = window.setInterval(updateTimer, 1_000);
 }
 
 function renderHealth(heartsElement: HTMLOutputElement, valueElement: HTMLOutputElement, health: number): void {
