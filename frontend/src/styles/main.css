@@ -828,6 +828,9 @@ a:hover { text-decoration: underline; }
   min-height: 0;
 }
 
+/* Hidden on desktop: physical keyboard controls remain the primary input there. */
+.touch-controls { display: none; }
+
 #game-canvas {
   display: block;
   width: min(100%, calc(100vh - 160px));
@@ -904,4 +907,54 @@ a:hover { text-decoration: underline; }
   .leaderboard-row span:last-child { display: none; }
   .leaderboard-row { font-size: .8125rem; }
   .leaderboard-row strong { font-size: .8125rem; }
+}
+
+/* A compact, phone-only alternative to WASD. `pointer: coarse` keeps these
+   controls out of normal desktop layouts, even if a narrow browser is open. */
+@media (max-width: 720px) and (pointer: coarse) {
+  .gameplay-layout { gap: 18px; padding: 16px; }
+  .run-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .score-card, .health-card { min-height: 0; margin: 0; padding: 14px; }
+  .score-card output { font-size: 1.8rem; }
+  .health-hearts { font-size: 1.35rem; }
+  .controls-card { display: none; }
+  .game-context { grid-template-columns: 1fr; gap: 10px; }
+  .objective-card, .effects-card, .tile-guide-card { min-height: 0; padding: 14px; }
+  .tile-guide-card { display: none; }
+
+  .canvas-stage { gap: 18px; }
+  #game-canvas { width: min(100%, calc(100dvh - 310px)); }
+
+  .touch-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: min(100%, 360px);
+    padding-bottom: env(safe-area-inset-bottom);
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  .touch-direction-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 52px);
+    grid-template-rows: repeat(2, 52px);
+    gap: 6px;
+  }
+
+  .touch-direction,
+  .touch-jump {
+    border: 1px solid var(--color-surface-border);
+    border-radius: 14px;
+    background: var(--color-surface-hover);
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 700;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .touch-direction { font-size: 1.5rem; }
+  .touch-up { grid-column: 2; }
+  .touch-jump { width: 106px; height: 76px; color: var(--color-game-gold); letter-spacing: .08em; }
+  .touch-direction:active, .touch-jump:active, .touch-jump.is-armed { background: var(--color-primary); color: white; transform: translateY(1px); }
 }
