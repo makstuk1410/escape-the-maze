@@ -922,7 +922,7 @@ a:hover { text-decoration: underline; }
   .objective-card, .effects-card, .tile-guide-card { min-height: 0; padding: 14px; }
   .tile-guide-card { display: none; }
 
-  .canvas-stage { gap: 18px; }
+  .canvas-stage { gap: 10px; }
   #game-canvas { width: min(100%, calc(100dvh - 310px)); }
 
   .touch-controls {
@@ -954,7 +954,10 @@ a:hover { text-decoration: underline; }
   }
 
   .touch-direction { font-size: 1.5rem; }
-  .touch-up { grid-column: 2; }
+  .touch-up { grid-column: 2; grid-row: 1; }
+  .touch-direction[data-direction="LEFT"] { grid-column: 1; grid-row: 2; }
+  .touch-direction[data-direction="DOWN"] { grid-column: 2; grid-row: 2; }
+  .touch-direction[data-direction="RIGHT"] { grid-column: 3; grid-row: 2; }
   .touch-jump { width: 106px; height: 76px; color: var(--color-game-gold); letter-spacing: .08em; }
   .touch-direction:active, .touch-jump:active, .touch-jump.is-armed { background: var(--color-primary); color: white; transform: translateY(1px); }
 }
