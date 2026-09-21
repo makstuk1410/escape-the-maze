@@ -20,6 +20,20 @@ const directionByKey: Record<string, Direction | undefined> = {
   D: "RIGHT"
 };
 
+// `event.code` identifies the physical key, independent of the active keyboard
+// layout. This keeps WASD controls working with Ukrainian, Polish, and other
+// layouts where `event.key` is not the Latin character.
+const directionByCode: Record<string, Direction | undefined> = {
+  ArrowUp: "UP",
+  KeyW: "UP",
+  ArrowDown: "DOWN",
+  KeyS: "DOWN",
+  ArrowLeft: "LEFT",
+  KeyA: "LEFT",
+  ArrowRight: "RIGHT",
+  KeyD: "RIGHT"
+};
+
 export class KeyboardInput {
   private jumpHeld = false;
 
@@ -30,7 +44,7 @@ export class KeyboardInput {
       return;
     }
 
-    const direction = directionByKey[event.key];
+    const direction = directionByCode[event.code] ?? directionByKey[event.key];
 
     if (!direction) {
       return;
