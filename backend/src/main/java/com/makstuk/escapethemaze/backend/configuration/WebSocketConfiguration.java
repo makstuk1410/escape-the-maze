@@ -26,6 +26,9 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(gameWebSocketHandler, "/ws/games/{gameId}")
                 .addInterceptors(authenticationHandshakeInterceptor)
-                .setAllowedOriginPatterns("http://localhost:5173");
+                .setAllowedOriginPatterns(
+                    "http://localhost:5173",
+                    "https://escape-the-maze-game-production.up.railway.app"
+                );
     }
 }
