@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: escape-the-maze-backend
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:escape_the_maze}
+    username: ${DB_USERNAME:escape_the_maze}
+    password: ${DB_PASSWORD:escape_the_maze_dev}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+server:
+  error:
+    include-message: never
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION:PT8H}

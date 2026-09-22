@@ -28,7 +28,8 @@ public class SecurityConfiguration {
                         (request, response, authenticationException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                "/api/health", "/api/auth/register", "/api/auth/login", "/api/leaderboard", "/actuator/health/**")
+                                "/api/health", "/api/auth/register", "/api/auth/login", "/api/leaderboard",
+                                "/actuator/health/**", "/actuator/metrics/**")
                         .permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
